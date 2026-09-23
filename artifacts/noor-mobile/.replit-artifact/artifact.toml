@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/noor-mobile/"
+title = "Noor"
+description = "A calm, citation-first mobile companion for Muslims to connect more deeply with the Quran, daily reflection, hadith, tafsir, short reminders, and Quranic Arabic learning."
+version = "1.0.0"
+id = "artifacts/noor-mobile"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/noor-mobile/" ]
+localPort = 22713
+
+[services.development]
+run = "pnpm --filter @workspace/noor-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/noor-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/noor-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "22713"
+BASE_PATH = "/noor-mobile/"

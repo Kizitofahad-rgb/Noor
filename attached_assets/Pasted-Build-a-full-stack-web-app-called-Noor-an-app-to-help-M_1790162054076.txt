@@ -1,0 +1,53 @@
+Build a full-stack web app called "Noor" — an app to help Muslims connect
+more deeply with their faith. Use React (or Next.js) for the frontend and
+Node/Express for the backend, with a database (start with SQLite/Postgres)
+for user content and progress. Make it a responsive, installable PWA.
+
+Core features to build, in this order:
+
+1. QURAN HUB (center of the app)
+   - Full Quran text with English translation (Saheeh International or
+     The Clear Quran), integrated via the Quran.com API or al-quran-cloud API
+   - Per-surah "deep dive" pages: revelation context, verse-by-verse meaning,
+     cross-references, and cited tafsir excerpts (Ibn Kathir), styled like a
+     study guide, not a wall of text
+   - Audio recitation player per surah, pulling from mp3quran.net or
+     everyayah.com, with a reciter picker
+
+2. DAILY REFLECTION
+   - A short daily ayah/hadith reflection, selectable by the user's current
+     situation (e.g. anxious, grateful, grieving, seeking guidance) —
+     store a curated bank of situation-tagged reflections to start, editable
+     later by an admin
+
+3. HADITH & TAFSIR LIBRARY
+   - Simple, plain-language explanations
+   - Every hadith must show its source book and grading (e.g. Sahih al-Bukhari,
+     graded sahih) directly beside the text
+
+4. REELS SECTION
+   - Short vertical video feed of faith reminders, seeded from curated
+     YouTube videos via the YouTube Data API
+   - Allow logged-in users to submit their own short videos (upload or
+     YouTube link), which go into an admin approval queue before going live
+     — do NOT auto-publish user submissions
+
+5. ARABIC LEARNING TRACK
+   - Lessons to read and understand Quranic Arabic, starting with the
+     Arabic alphabet and basic tajweed rules
+   - Include a running glossary of Arabic words with no single English
+     equivalent, with short explanations of their fuller meaning
+
+Use environment variables (never hardcoded keys) for all external API keys:
+YOUTUBE_API_KEY, and any Quran/tafsir API key needed. Read them from
+process.env and tell me exactly which keys I need to obtain and where to
+put them in Replit Secrets.
+
+Design: clean, calm, mobile-first, no clutter — this is a reflective app,
+not a social feed. Avoid sectarian framing; keep sourcing neutral and
+citation-first throughout.
+
+Finally: initialize a git repository if one doesn't exist, create a new
+GitHub repository under my connected GitHub account named "noor-app", and
+push the full codebase to it on the main branch. Confirm the push succeeded
+and give me the repository URL.
