@@ -1,6 +1,7 @@
 import { Bookmark, BookOpen, Trash2, Calendar, Sparkles } from 'lucide-react';
 import { useNoor } from '@/context/NoorContext';
 import { surahs, verses, libraryItems, type Surah } from '@/lib/content';
+import { OrnamentedCard, BorderedSubPanel, SectionDivider } from '../Ornamentation';
 
 export function SavedView({
   onOpenSurah,
@@ -25,69 +26,69 @@ export function SavedView({
     userReflections.length > 0;
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
+    <div className="space-y-8 max-w-5xl mx-auto pb-12 font-serif text-text-primary">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
           Your Personal Library & Journal
         </h1>
-        <p className="text-stone-500 text-xs sm:text-sm mt-1">
+        <p className="text-text-primary/70 text-xs sm:text-sm mt-1">
           Saved sacred verses, authentic hadith, and your personal moments of contemplation.
         </p>
       </div>
 
       {!hasAnySaved ? (
-        <div className="text-center py-20 bg-white rounded-3xl border border-stone-200 p-8 space-y-4">
-          <Bookmark className="w-12 h-12 text-stone-300 mx-auto" />
-          <h3 className="text-lg font-bold text-stone-900">Your Library is Waiting</h3>
-          <p className="text-xs text-stone-500 max-w-sm mx-auto">
+        <OrnamentedCard className="text-center py-20 p-8 space-y-4">
+          <Bookmark className="w-12 h-12 text-accent-gold/40 mx-auto" />
+          <h3 className="text-lg font-bold text-text-primary">Your Library is Waiting</h3>
+          <p className="text-xs text-text-primary/70 max-w-sm mx-auto leading-relaxed">
             Bookmark inspiring verses from the Quran Hub, hadith from the library, or write daily reflections on the home page.
           </p>
           <div className="pt-2">
             <button
               onClick={() => onNavigate('quran')}
-              className="px-5 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs"
+              className="px-5 py-2.5 bg-accent-gold hover:bg-accent-gold-dim text-bg-primary rounded-xl text-xs font-bold shadow-xs label-caps transition-colors"
             >
               Explore Quran Hub
             </button>
           </div>
-        </div>
+        </OrnamentedCard>
       ) : (
         <div className="space-y-8">
           {/* User Reflection Journal */}
           {userReflections.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-600" />
+                <h2 className="text-base font-bold text-text-primary flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-accent-gold" />
                   <span>Your Contemplation Journal ({userReflections.length})</span>
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {userReflections.map((ref) => (
-                  <div
+                  <OrnamentedCard
                     key={ref.id}
-                    className="bg-[#FAF5ED] rounded-2xl border border-amber-200/80 p-5 space-y-3 shadow-xs"
+                    className="p-5 space-y-3"
                   >
-                    <div className="flex items-center justify-between text-xs text-stone-500 pb-2 border-b border-amber-200/50">
-                      <span className="font-semibold text-amber-900 uppercase tracking-wider">
+                    <div className="flex items-center justify-between text-xs text-text-primary/70 pb-2 border-b border-accent-gold/25">
+                      <span className="font-bold text-accent-gold label-caps">
                         Mood: {ref.mood}
                       </span>
-                      <span className="flex items-center gap-1 text-[11px]">
-                        <Calendar className="w-3 h-3" />
+                      <span className="flex items-center gap-1 text-[11px] font-mono text-text-primary/60">
+                        <Calendar className="w-3 h-3 text-accent-gold" />
                         {ref.date}
                       </span>
                     </div>
-                    <p className="text-stone-800 text-xs sm:text-sm italic leading-relaxed">
+                    <p className="text-text-primary text-xs sm:text-sm italic leading-relaxed">
                       "{ref.text}"
                     </p>
                     {ref.ayahReference && (
-                      <div className="text-[11px] text-emerald-800 font-semibold pt-1">
+                      <BorderedSubPanel className="text-[11px] text-accent-gold font-semibold p-2">
                         Anchor: {ref.ayahReference}
-                      </div>
+                      </BorderedSubPanel>
                     )}
-                  </div>
+                  </OrnamentedCard>
                 ))}
               </div>
             </div>
@@ -96,23 +97,26 @@ export function SavedView({
           {/* Saved Surahs */}
           {savedSurahList.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-base font-bold text-stone-900">
+              <h2 className="text-base font-bold text-text-primary">
                 Bookmarked Surahs ({savedSurahList.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {savedSurahList.map((surah) => (
-                  <div
+                  <OrnamentedCard
                     key={surah.id}
                     onClick={() => onOpenSurah(surah)}
-                    className="p-4 bg-white rounded-2xl border border-stone-200 flex items-center justify-between cursor-pointer hover:border-emerald-700/50 shadow-xs"
+                    className="p-4 flex items-center justify-between cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-900 font-bold flex items-center justify-center text-xs">
-                        {surah.number}
+                      <div className="w-10 h-10 rounded-xl bg-bg-primary text-accent-gold border border-accent-gold/40 font-bold flex items-center justify-center text-xs">
+                        {String(surah.number).padStart(2, '0')}
                       </div>
                       <div>
-                        <h4 className="font-bold text-sm text-stone-900">{surah.name}</h4>
-                        <p className="text-xs text-stone-500">{surah.meaning}</p>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-sm text-text-primary">{surah.name}</h4>
+                          <span className="font-arabic text-accent-gold text-lg">{surah.arabic}</span>
+                        </div>
+                        <p className="text-xs text-text-primary/70">{surah.meaning}</p>
                       </div>
                     </div>
                     <button
@@ -120,12 +124,12 @@ export function SavedView({
                         e.stopPropagation();
                         toggleSaved(`surah-${surah.id}`);
                       }}
-                      className="p-2 text-stone-400 hover:text-rose-600 rounded-lg"
-                      title="Remove"
+                      className="p-2 text-text-primary/40 hover:text-accent-gold rounded-lg transition-colors"
+                      title="Remove bookmark"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
-                  </div>
+                  </OrnamentedCard>
                 ))}
               </div>
             </div>
@@ -134,34 +138,34 @@ export function SavedView({
           {/* Saved Verses */}
           {savedVerseList.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-base font-bold text-stone-900">
+              <h2 className="text-base font-bold text-text-primary">
                 Bookmarked Verses ({savedVerseList.length})
               </h2>
               <div className="space-y-3">
                 {savedVerseList.map((verse) => (
-                  <div
+                  <OrnamentedCard
                     key={`${verse.surahId}-${verse.number}`}
-                    className="p-5 bg-white rounded-2xl border border-stone-200 shadow-xs space-y-2"
+                    className="p-5 space-y-2"
                   >
-                    <div className="flex items-center justify-between pb-2 border-b border-stone-100">
-                      <span className="text-xs font-bold text-emerald-900">
+                    <div className="flex items-center justify-between pb-2 border-b border-accent-gold/25">
+                      <span className="text-xs font-bold text-accent-gold label-caps">
                         Surah {verse.surahId} · Ayah {verse.number}
                       </span>
                       <button
                         onClick={() => toggleSaved(`verse-${verse.surahId}-${verse.number}`)}
-                        className="text-stone-400 hover:text-rose-600 p-1"
-                        title="Remove"
+                        className="text-text-primary/40 hover:text-accent-gold p-1 transition-colors"
+                        title="Remove bookmark"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <div className="font-arabic text-xl text-stone-900 text-right py-1">
+                    <div className="font-arabic text-2xl text-accent-gold text-right py-1 leading-[2.2]">
                       {verse.arabic}
                     </div>
-                    <p className="text-xs text-stone-700 leading-relaxed font-medium">
+                    <p className="text-xs text-text-primary leading-relaxed font-medium">
                       "{verse.translation}"
                     </p>
-                  </div>
+                  </OrnamentedCard>
                 ))}
               </div>
             </div>
@@ -170,37 +174,41 @@ export function SavedView({
           {/* Saved Hadiths */}
           {savedHadithList.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-base font-bold text-stone-900">
+              <h2 className="text-base font-bold text-text-primary">
                 Bookmarked Hadith & Tafsir ({savedHadithList.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {savedHadithList.map((item) => (
-                  <div
+                  <OrnamentedCard
                     key={item.id}
-                    className="p-5 bg-white rounded-2xl border border-stone-200 shadow-xs space-y-2"
+                    className="p-5 space-y-2"
                   >
-                    <div className="flex items-center justify-between pb-2 border-b border-stone-100">
-                      <span className="text-xs font-bold text-emerald-900">{item.title}</span>
+                    <div className="flex items-center justify-between pb-2 border-b border-accent-gold/25">
+                      <span className="text-xs font-bold text-accent-gold label-caps">{item.title}</span>
                       <button
                         onClick={() => toggleSaved(`lib-${item.id}`)}
-                        className="text-stone-400 hover:text-rose-600 p-1"
+                        className="text-text-primary/40 hover:text-accent-gold p-1 transition-colors"
+                        title="Remove bookmark"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <p className="text-xs text-stone-800 italic leading-relaxed">
+                    <p className="text-xs text-text-primary italic leading-relaxed">
                       "{item.excerpt}"
                     </p>
-                    <div className="text-[11px] font-semibold text-emerald-800">
-                      {item.source} ({item.grading || 'Authentic'})
+                    <div className="text-[11px] font-semibold text-accent-gold flex items-center gap-1">
+                      <BookOpen className="w-3 h-3" />
+                      <span>{item.source} ({item.grading || 'Authentic'})</span>
                     </div>
-                  </div>
+                  </OrnamentedCard>
                 ))}
               </div>
             </div>
           )}
         </div>
       )}
+
+      <SectionDivider />
     </div>
   );
 }

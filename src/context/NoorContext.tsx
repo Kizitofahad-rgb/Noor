@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { MoodId, ReelItem } from '@/lib/content';
 import { initialReels } from '@/lib/content';
 
@@ -34,11 +34,26 @@ type NoorContextType = {
   addSubmittedReel: (reel: Omit<ReelItem, 'id' | 'likesCount'>) => void;
   pendingReels: ReelItem[];
   approveReel: (id: string) => void;
+  isLoadingReels: boolean;
+  fetchReels: (query?: string) => Promise<void>;
+  reelsSource: string;
 };
 
 const NoorContext = createContext<NoorContextType | null>(null);
 
 const STORAGE_PREFIX = 'noor_app_';
+
+// Known obsolete placeholder IDs to clean from cache
+const OBSOLETE_PLACEHOLDER_IDS = new Set([
+  '3K4_Jg9Y2eY',
+  'N7B7l6-bF5c',
+  'W8G5eD_uU-E',
+  'P0v4_4Nq3aE',
+  'reel-1',
+  'reel-2',
+  'reel-3',
+  'reel-4',
+]);
 
 export function NoorProvider({ children }: { children: React.ReactNode }) {
   const [mood, setMood] = useState<MoodId>('anxious');
@@ -97,7 +112,17 @@ export function NoorProvider({ children }: { children: React.ReactNode }) {
   const [reels, setReels] = useState<ReelItem[]>(() => {
     try {
       const stored = localStorage.getItem(`${STORAGE_PREFIX}reels`);
-      return stored ? JSON.parse(stored) : initialReels;
+      if (stored) {
+        const parsed = JSON.parse(stored) as ReelItem[];
+        // Filter out any stale obsolete placeholders
+        const sanitized = parsed.filter(
+          (r) => !OBSOLETE_PLACEHOLDER_IDS.has(r.id) && (!r.youtubeId || !OBSOLETE_PLACEHOLDER_IDS.has(r.youtubeId))
+        );
+        if (sanitized.length >= 3) {
+          return sanitized;
+        }
+      }
+      return initialReels;
     } catch {
       return initialReels;
     }
@@ -106,9 +131,9 @@ export function NoorProvider({ children }: { children: React.ReactNode }) {
   const [likedReels, setLikedReels] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(`${STORAGE_PREFIX}liked_reels`);
-      return stored ? JSON.parse(stored) : ['reel-1'];
+      return stored ? JSON.parse(stored) : [];
     } catch {
-      return ['reel-1'];
+      return [];
     }
   });
 
@@ -120,6 +145,42 @@ export function NoorProvider({ children }: { children: React.ReactNode }) {
       return [];
     }
   });
+
+  const [isLoadingReels, setIsLoadingReels] = useState<boolean>(false);
+  const [reelsSource, setReelsSource] = useState<string>('initial');
+
+  const fetchReels = useCallback(async (query = 'Islamic reminder short') => {
+    setIsLoadingReels(true);
+    try {
+      const res = await fetch(`/api/reels?q=${encodeURIComponent(query)}`);
+      if (!res.ok) {
+        throw new Error(`API returned ${res.status}`);
+      }
+      const data = await res.json();
+      if (data.reels && Array.isArray(data.reels) && data.reels.length > 0) {
+        // Filter out any items with embeddable false or obsolete placeholders
+        const valid = (data.reels as ReelItem[]).filter(
+          (r) => r.youtubeId && !OBSOLETE_PLACEHOLDER_IDS.has(r.youtubeId)
+        );
+        if (valid.length > 0) {
+          setReels(valid);
+          setReelsSource(data.source || 'youtube-api');
+          try {
+            localStorage.setItem(`${STORAGE_PREFIX}reels`, JSON.stringify(valid));
+          } catch {}
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch dynamic reels from /api/reels, using verified fallback:', err);
+    } finally {
+      setIsLoadingReels(false);
+    }
+  }, []);
+
+  // Fetch verified YouTube reels on mount
+  useEffect(() => {
+    fetchReels('Islamic reminder short');
+  }, [fetchReels]);
 
   useEffect(() => {
     try {
@@ -249,6 +310,9 @@ export function NoorProvider({ children }: { children: React.ReactNode }) {
         addSubmittedReel,
         pendingReels,
         approveReel,
+        isLoadingReels,
+        fetchReels,
+        reelsSource,
       }}
     >
       {children}

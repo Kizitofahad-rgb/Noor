@@ -126,17 +126,17 @@ export function AudioPlayerBar({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-900/95 backdrop-blur-md text-white border-t border-stone-800 shadow-2xl px-4 py-3 sm:px-6">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-bg-primary/95 backdrop-blur-md text-text-primary border-t border-accent-gold/40 shadow-2xl px-4 py-3 sm:px-6 font-serif">
       {/* Progress scrubber bar */}
       <div
         onClick={handleSeek}
-        className="absolute top-0 left-0 right-0 h-1.5 bg-stone-800 cursor-pointer group"
+        className="absolute top-0 left-0 right-0 h-1 bg-bg-card cursor-pointer group"
       >
         <div
-          className="h-full bg-emerald-500 transition-all relative"
+          className="h-full bg-accent-gold transition-all relative"
           style={{ width: `${progress}%` }}
         >
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-accent-gold rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
       </div>
 
@@ -146,59 +146,59 @@ export function AudioPlayerBar({
           <button
             onClick={restart}
             title="Restart"
-            className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition-colors hidden sm:block"
+            className="p-1.5 text-accent-gold/70 hover:text-accent-gold rounded-lg hover:bg-bg-card transition-colors hidden sm:block border border-accent-gold/20"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
           <div className="truncate">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm text-stone-100 truncate">{audioState.title}</span>
+              <span className="font-bold text-sm text-text-primary truncate">{audioState.title}</span>
               {audioState.arabicSnippet && (
-                <span className="font-arabic text-emerald-300 text-xs hidden md:inline truncate">
+                <span className="font-arabic text-accent-gold text-base hidden md:inline truncate">
                   {audioState.arabicSnippet}
                 </span>
               )}
             </div>
-            <div className="text-xs text-stone-400 truncate">
-              {audioState.subtitle} · <span className="text-emerald-400">{activeReciter.name}</span>
+            <div className="text-xs text-text-primary/70 truncate">
+              {audioState.subtitle} · <span className="text-accent-gold font-medium">{activeReciter.name}</span>
             </div>
           </div>
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-4 shrink-0">
-          <div className="text-xs font-mono text-stone-400 hidden sm:block">
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="text-xs font-mono text-text-primary/60 hidden sm:block">
             {formatSec(currentTime)} / {formatSec(duration)}
           </div>
 
           <button
             onClick={togglePlay}
             disabled={loading}
-            className="w-10 h-10 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center transition-transform active:scale-95 shadow-md"
+            className="w-10 h-10 rounded-full bg-accent-gold hover:bg-accent-gold-dim text-bg-primary flex items-center justify-center transition-transform active:scale-95 shadow-md shrink-0"
           >
             {loading ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-bg-primary border-t-transparent rounded-full animate-spin" />
             ) : isPlaying ? (
-              <Pause className="w-4 h-4" />
+              <Pause className="w-4 h-4 fill-current" />
             ) : (
-              <Play className="w-4 h-4 ml-0.5" />
+              <Play className="w-4 h-4 ml-0.5 fill-current" />
             )}
           </button>
 
           <button
             onClick={onOpenSettings}
-            className="p-2 text-stone-300 hover:text-white hover:bg-stone-800 rounded-lg text-xs flex items-center gap-1.5 transition-colors border border-stone-700/80"
+            className="p-2 text-text-primary/90 hover:text-accent-gold hover:bg-bg-card rounded-xl text-xs flex items-center gap-1.5 transition-colors border border-accent-gold/30"
           >
-            <Volume2 className="w-4 h-4 text-emerald-400" />
-            <span className="hidden md:inline font-medium">Reciter & Speed</span>
-            <span className="px-1.5 py-0.5 bg-stone-800 rounded text-[10px] text-emerald-400">
+            <Volume2 className="w-4 h-4 text-accent-gold" />
+            <span className="hidden md:inline font-medium">Reciter</span>
+            <span className="px-1.5 py-0.5 bg-bg-card rounded text-[10px] text-accent-gold font-mono border border-accent-gold/20">
               {audioRate}x
             </span>
           </button>
 
           <button
             onClick={onClose}
-            className="p-1.5 text-stone-400 hover:text-stone-200 rounded-lg hover:bg-stone-800 transition-colors"
+            className="p-1.5 text-text-primary/60 hover:text-accent-gold rounded-xl hover:bg-bg-card transition-colors border border-accent-gold/20"
           >
             <X className="w-4 h-4" />
           </button>

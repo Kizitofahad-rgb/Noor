@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   X,
   Play,
@@ -8,16 +8,18 @@ import {
   BookOpen,
   HelpCircle,
   Sparkles,
-  Info,
   ChevronDown,
   ChevronUp,
+  Loader2,
 } from 'lucide-react';
 import type { Surah } from '@/lib/content';
 import { verses } from '@/lib/content';
 import { tajweedStyles } from '@/lib/tajweed';
 import { getVerseAudioUrl, getSurahAudioUrl } from '@/lib/recitationAudio';
+import { fetchSurahFromAlQuranCloud, type RemoteAyah } from '@/lib/quranApi';
 import { useNoor } from '@/context/NoorContext';
 import type { ActiveAudioState } from './AudioPlayerBar';
+import { CornerFlourishes, BorderedSubPanel } from './Ornamentation';
 
 export function SurahDeepDiveModal({
   surah,
@@ -32,8 +34,39 @@ export function SurahDeepDiveModal({
   const [activeTab, setActiveTab] = useState<'study' | 'overview'>('study');
   const [expandedTafsir, setExpandedTafsir] = useState<number | null>(null);
 
-  // Filter verses belonging to this surah
+  // Local curated verses (for featured surahs with word-by-word Tajweed & reflections)
   const surahVerses = verses.filter((v) => v.surahId === surah.id);
+
+  // Remote keyless verses from Al-Quran Cloud API for complete chapters
+  const [remoteAyahs, setRemoteAyahs] = useState<RemoteAyah[]>([]);
+  const [isLoadingRemote, setIsLoadingRemote] = useState(false);
+  const [remoteError, setRemoteError] = useState(false);
+
+  useEffect(() => {
+    if (surahVerses.length === 0) {
+      let isMounted = true;
+      setIsLoadingRemote(true);
+      setRemoteError(false);
+
+      fetchSurahFromAlQuranCloud(surah.number)
+        .then((ayahs) => {
+          if (isMounted) {
+            setRemoteAyahs(ayahs);
+            setIsLoadingRemote(false);
+          }
+        })
+        .catch(() => {
+          if (isMounted) {
+            setRemoteError(true);
+            setIsLoadingRemote(false);
+          }
+        });
+
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [surah.number, surahVerses.length]);
 
   const isSurahSaved = savedItems.includes(`surah-${surah.id}`);
 
@@ -48,38 +81,43 @@ export function SurahDeepDiveModal({
     });
   };
 
-  const playVerse = (verseNumber: number) => {
+  const playVerse = (verseNumber: number, fallbackArabic?: string, fallbackTranslation?: string) => {
     const v = surahVerses.find((item) => item.number === verseNumber);
     const url = getVerseAudioUrl(surah.number, verseNumber, reciterId);
     onPlayAudio({
       title: `Surah ${surah.name} · Ayah ${verseNumber}`,
-      subtitle: v?.simpleMeaning || 'Verse recitation',
+      subtitle: v?.simpleMeaning || fallbackTranslation || 'Verse recitation',
       url,
-      arabicSnippet: v?.arabic,
+      arabicSnippet: v?.arabic || fallbackArabic || surah.arabic,
     });
   };
 
+  const totalVersesDisplay = surahVerses.length || remoteAyahs.length || surah.verses;
+
   return (
-    <div className="fixed inset-0 z-40 bg-stone-900/60 backdrop-blur-xs flex justify-center items-end sm:items-center p-0 sm:p-4 overflow-y-auto">
-      <div className="bg-[#FAF8F5] w-full max-w-4xl max-h-[92vh] sm:rounded-2xl shadow-2xl flex flex-col border border-stone-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        
+    <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex justify-center items-end sm:items-center p-0 sm:p-4 overflow-y-auto font-serif">
+      <div className="bg-bg-card w-full max-w-4xl max-h-[92vh] sm:rounded-2xl shadow-2xl flex flex-col border border-accent-gold overflow-hidden relative text-text-primary animate-in fade-in zoom-in-95 duration-200">
+        <CornerFlourishes />
+
         {/* Header Bar */}
-        <div className="bg-emerald-950 text-white px-6 py-5 flex items-center justify-between border-b border-emerald-900/80">
+        <div className="bg-bg-primary text-text-primary px-6 py-5 flex items-center justify-between border-b border-accent-gold/40">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-900/80 border border-emerald-700/60 flex items-center justify-center font-bold text-emerald-200 text-lg">
+            <div className="w-12 h-12 rounded-xl bg-bg-card border border-accent-gold text-accent-gold flex items-center justify-center font-bold text-lg shadow-sm">
               {surah.number}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-white tracking-tight">{surah.name}</h2>
-                <span className="text-emerald-300 font-arabic text-xl px-2">
+                <h2 className="text-xl font-bold text-text-primary tracking-tight font-serif">
+                  {surah.name}
+                </h2>
+                <span className="text-accent-gold font-arabic text-2xl px-2">
                   {surah.arabic}
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-900 text-emerald-300 border border-emerald-700 font-medium">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-bg-card text-accent-gold border border-accent-gold/40 label-caps font-semibold">
                   {surah.revelation}
                 </span>
               </div>
-              <p className="text-xs text-emerald-200/80 mt-0.5">
+              <p className="text-xs text-text-primary/70 mt-0.5">
                 {surah.meaning} · {surah.verses} Verses · Revelation #{surah.revelationOrder}
               </p>
             </div>
@@ -91,15 +129,15 @@ export function SurahDeepDiveModal({
               title="Bookmark Surah"
               className={`p-2 rounded-xl border transition-colors ${
                 isSurahSaved
-                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                  : 'bg-emerald-900/60 border-emerald-800 text-emerald-200 hover:text-white'
+                  ? 'bg-accent-gold/20 border-accent-gold text-accent-gold'
+                  : 'bg-bg-card border-accent-gold/40 text-text-primary/70 hover:text-accent-gold'
               }`}
             >
-              {isSurahSaved ? <BookmarkCheck className="w-5 h-5" /> : <Bookmark className="w-5 h-5" />}
+              {isSurahSaved ? <BookmarkCheck className="w-5 h-5 text-accent-gold" /> : <Bookmark className="w-5 h-5" />}
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-emerald-900/60 border border-emerald-800 text-emerald-200 hover:text-white hover:bg-emerald-900 transition-colors"
+              className="p-2 rounded-xl bg-bg-card border border-accent-gold/40 text-text-primary/70 hover:text-accent-gold transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -107,24 +145,24 @@ export function SurahDeepDiveModal({
         </div>
 
         {/* Action & Tab subheader */}
-        <div className="bg-stone-100/90 px-6 py-3 border-b border-stone-200 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 bg-stone-200/70 p-1 rounded-xl">
+        <div className="bg-bg-primary/95 px-6 py-3 border-b border-accent-gold/30 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 bg-bg-card p-1 rounded-xl border border-accent-gold/30">
             <button
               onClick={() => setActiveTab('study')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs transition-all label-caps ${
                 activeTab === 'study'
-                  ? 'bg-white text-emerald-950 shadow-xs'
-                  : 'text-stone-600 hover:text-stone-900'
+                  ? 'bg-bg-primary text-accent-gold border border-accent-gold/50 shadow-xs font-bold'
+                  : 'text-text-primary/70 hover:text-text-primary'
               }`}
             >
-              Study Guide & Verses ({surahVerses.length || surah.verses})
+              Study Guide & Verses ({totalVersesDisplay})
             </button>
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs transition-all label-caps ${
                 activeTab === 'overview'
-                  ? 'bg-white text-emerald-950 shadow-xs'
-                  : 'text-stone-600 hover:text-stone-900'
+                  ? 'bg-bg-primary text-accent-gold border border-accent-gold/50 shadow-xs font-bold'
+                  : 'text-text-primary/70 hover:text-text-primary'
               }`}
             >
               Context & Revelation
@@ -134,85 +172,74 @@ export function SurahDeepDiveModal({
           <div className="flex items-center gap-3">
             <button
               onClick={playFullSurah}
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-medium transition-transform active:scale-95 shadow-xs"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-accent-gold hover:bg-accent-gold-dim text-bg-primary text-xs font-bold transition-transform active:scale-95 shadow-xs label-caps"
             >
-              <Play className="w-3.5 h-3.5" />
+              <Play className="w-3.5 h-3.5 fill-current" />
               <span>Play Full Surah ({surah.time})</span>
             </button>
           </div>
         </div>
 
         {/* Content Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1">
+        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-text-primary">
           {activeTab === 'overview' ? (
             <div className="space-y-6 max-w-3xl mx-auto">
-              <div className="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-xs">
-                <div className="flex items-center gap-2 text-emerald-800 font-semibold text-sm mb-2">
-                  <Sparkles className="w-4 h-4 text-amber-600" />
+              <div className="relative bg-bg-primary/90 p-6 rounded-2xl border border-accent-gold shadow-xs">
+                <CornerFlourishes />
+                <div className="flex items-center gap-2 text-accent-gold font-bold text-xs mb-2 label-caps">
+                  <Sparkles className="w-4 h-4 text-accent-gold" />
                   <span>Central Theme</span>
                 </div>
-                <h3 className="text-xl font-bold text-stone-900">{surah.intro.theme}</h3>
-                <p className="text-stone-700 text-sm mt-3 leading-relaxed">
+                <h3 className="text-xl font-bold text-text-primary">{surah.intro.theme}</h3>
+                <p className="text-text-primary/80 text-sm mt-3 leading-relaxed">
                   {surah.intro.overview}
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-emerald-50/60 p-5 rounded-2xl border border-emerald-200/60">
-                  <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <BorderedSubPanel>
+                  <div className="text-xs font-bold text-accent-gold label-caps mb-1">
                     Core Spiritual Takeaway
-                  </span>
-                  <p className="text-sm font-medium text-emerald-950 mt-2 leading-relaxed">
+                  </div>
+                  <p className="text-xs text-text-primary/80 leading-relaxed italic">
                     "{surah.intro.keyTakeaway}"
                   </p>
-                </div>
-                <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200">
-                  <span className="text-xs font-bold text-stone-600 uppercase tracking-wider">
-                    Historical Period
-                  </span>
-                  <p className="text-sm text-stone-800 mt-2 leading-relaxed">
-                    Revealed in <span className="font-semibold text-stone-900">{surah.revelation}</span> as the {surah.revelationOrder}th chronological chapter of the Prophet's ﷺ mission.
+                </BorderedSubPanel>
+
+                <BorderedSubPanel>
+                  <div className="text-xs font-bold text-accent-gold label-caps mb-1">
+                    Historical Period & Context
+                  </div>
+                  <p className="text-xs text-text-primary/80 leading-relaxed">
+                    Revealed during the <strong className="text-accent-gold">{surah.revelation}</strong> period as
+                    the {surah.revelationOrder}th chapter in order of revelation.
                   </p>
-                </div>
+                </BorderedSubPanel>
               </div>
 
-              {/* Tajweed Legend */}
-              <div className="bg-stone-100/80 p-5 rounded-2xl border border-stone-200">
-                <h4 className="font-semibold text-stone-900 text-xs tracking-wider uppercase mb-3 flex items-center gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-emerald-800" />
-                  Tajweed Color Legend in this Surah
+              {/* Tajweed Color Guide */}
+              <BorderedSubPanel>
+                <h4 className="text-xs font-bold text-accent-gold label-caps mb-3 flex items-center gap-2">
+                  <span>Color-Coded Tajweed Guide</span>
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {Object.entries(tajweedStyles).map(([key, style]) => (
-                    <div key={key} className="bg-white p-3 rounded-xl border border-stone-200/80">
+                    <div key={key} className="bg-bg-card p-3 rounded-xl border border-accent-gold/30">
                       <div className="flex items-center gap-1.5">
-                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: style.color }} />
-                        <span className="text-xs font-bold text-stone-900">{style.label}</span>
+                        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: style.color }} />
+                        <span className="text-xs font-bold text-text-primary">{style.label}</span>
                       </div>
-                      <p className="text-[11px] text-stone-500 mt-1">{style.ruleTip}</p>
+                      <p className="text-[11px] text-text-primary/60 mt-1">{style.ruleTip}</p>
                     </div>
                   ))}
                 </div>
-              </div>
+              </BorderedSubPanel>
             </div>
           ) : (
             <div className="space-y-6">
               {/* Study Mode: Verse-by-verse breakdown */}
-              {surahVerses.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-2xl border border-stone-200">
-                  <BookOpen className="w-10 h-10 text-emerald-800/40 mx-auto mb-3" />
-                  <h4 className="text-stone-800 font-semibold">Surah Recitation & Full Translation Available</h4>
-                  <p className="text-stone-500 text-sm mt-1 max-w-md mx-auto">
-                    Click "Play Full Surah" to listen to complete recitation by {reciterId}. Full deep dive annotations are featured in Al-Fatihah, Ayatul Kursi, and Al-Ikhlas!
-                  </p>
-                  <button
-                    onClick={playFullSurah}
-                    className="mt-4 px-4 py-2 bg-emerald-800 text-white text-xs font-semibold rounded-xl hover:bg-emerald-700 transition-colors"
-                  >
-                    Listen to Full Chapter ({surah.time})
-                  </button>
-                </div>
-              ) : (
+              {surahVerses.length > 0 ? (
+                // Local featured verses with Tajweed & word-by-word
                 surahVerses.map((verse) => {
                   const isVerseSaved = savedItems.includes(`verse-${surah.id}-${verse.number}`);
                   const isTafsirOpen = expandedTafsir === verse.number;
@@ -220,15 +247,17 @@ export function SurahDeepDiveModal({
                   return (
                     <div
                       key={verse.number}
-                      className="bg-white rounded-2xl border border-stone-200/90 p-5 sm:p-6 shadow-xs hover:border-emerald-700/30 transition-all"
+                      className="relative bg-bg-primary/90 rounded-2xl border border-accent-gold/40 p-5 sm:p-6 shadow-xs hover:border-accent-gold transition-all"
                     >
+                      <CornerFlourishes size={12} opacity={0.6} />
+
                       {/* Verse Header */}
-                      <div className="flex items-center justify-between pb-4 border-b border-stone-100">
+                      <div className="flex items-center justify-between pb-4 border-b border-accent-gold/25">
                         <div className="flex items-center gap-2">
-                          <span className="w-8 h-8 rounded-lg bg-emerald-100/70 text-emerald-900 font-semibold text-xs flex items-center justify-center">
+                          <span className="w-8 h-8 rounded-lg bg-bg-card border border-accent-gold/40 text-accent-gold font-bold text-xs flex items-center justify-center">
                             {verse.number}
                           </span>
-                          <span className="text-xs font-medium text-stone-500">
+                          <span className="text-xs font-serif text-accent-gold-dim label-caps">
                             Ayah {verse.number} of {surah.verses}
                           </span>
                         </div>
@@ -236,31 +265,33 @@ export function SurahDeepDiveModal({
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => playVerse(verse.number)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-emerald-50 hover:text-emerald-800 text-stone-700 text-xs font-medium transition-colors"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-bg-card hover:bg-bg-card/80 border border-accent-gold/30 hover:border-accent-gold text-accent-gold text-xs font-serif transition-colors label-caps"
                           >
-                            <Play className="w-3.5 h-3.5 text-emerald-700 fill-emerald-700" />
+                            <Play className="w-3.5 h-3.5 text-accent-gold fill-accent-gold" />
                             <span>Listen</span>
                           </button>
                           <button
                             onClick={() => toggleSaved(`verse-${surah.id}-${verse.number}`)}
-                            className={`p-1.5 rounded-lg transition-colors ${
-                              isVerseSaved ? 'text-amber-600 bg-amber-50' : 'text-stone-400 hover:text-stone-700'
+                            className={`p-1.5 rounded-lg transition-colors border ${
+                              isVerseSaved
+                                ? 'text-accent-gold bg-accent-gold/15 border-accent-gold'
+                                : 'text-text-primary/40 border-transparent hover:text-accent-gold hover:border-accent-gold/30'
                             }`}
                           >
-                            {isVerseSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+                            {isVerseSaved ? <BookmarkCheck className="w-4 h-4 text-accent-gold" /> : <Bookmark className="w-4 h-4" />}
                           </button>
                         </div>
                       </div>
 
                       {/* Arabic Text */}
-                      <div className="py-6 text-right font-arabic text-2xl sm:text-3xl leading-[2.4] text-stone-900 tracking-wide select-text">
+                      <div className="py-6 text-right font-arabic text-2xl sm:text-3xl leading-[2.4] text-accent-gold tracking-wide select-text">
                         {verse.arabic}
                       </div>
 
                       {/* Word-by-word Breakdown with Tajweed */}
                       {verse.words && verse.words.length > 0 && (
-                        <div className="py-3 px-4 bg-stone-50/80 rounded-xl border border-stone-200/60 mb-4">
-                          <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">
+                        <div className="py-3 px-4 bg-bg-card/70 rounded-xl border border-accent-gold/30 mb-4">
+                          <div className="text-[10px] font-bold text-accent-gold-dim label-caps mb-2">
                             Word-by-Word Analysis & Tajweed
                           </div>
                           <div className="flex flex-wrap gap-2 justify-end" dir="rtl">
@@ -270,18 +301,18 @@ export function SurahDeepDiveModal({
                               return (
                                 <div
                                   key={idx}
-                                  className="bg-white px-2.5 py-1.5 rounded-lg border border-stone-200 text-center shadow-2xs"
+                                  className="bg-bg-primary px-2.5 py-1.5 rounded-lg border border-accent-gold/30 text-center shadow-2xs"
                                 >
                                   <div
-                                    className="font-arabic text-base sm:text-lg text-stone-900"
+                                    className="font-arabic text-base sm:text-lg text-text-primary"
                                     style={style ? { color: style.color, fontWeight: 700 } : {}}
                                   >
                                     {w.arabic}
                                   </div>
-                                  <div className="text-[10px] text-stone-400 font-mono mt-0.5" dir="ltr">
+                                  <div className="text-[10px] text-text-primary/50 font-mono mt-0.5" dir="ltr">
                                     {w.transliteration}
                                   </div>
-                                  <div className="text-[10px] text-emerald-800 font-medium" dir="ltr">
+                                  <div className="text-[10px] text-accent-gold font-medium" dir="ltr">
                                     {w.translation}
                                   </div>
                                 </div>
@@ -293,25 +324,25 @@ export function SurahDeepDiveModal({
 
                       {/* Translation & Transliteration */}
                       <div className="space-y-1.5 mt-2">
-                        <p className="text-stone-900 text-base font-medium leading-relaxed">
+                        <p className="text-text-primary text-base font-medium leading-relaxed">
                           {verse.translation}
                         </p>
-                        <p className="text-stone-500 text-xs italic font-serif">
+                        <p className="text-accent-gold-dim text-xs italic font-serif">
                           {verse.transliteration}
                         </p>
                       </div>
 
                       {/* Key Understanding Notes */}
                       {verse.understanding && verse.understanding.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-stone-100">
-                          <div className="text-xs font-semibold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                            <BookOpen className="w-3.5 h-3.5 text-emerald-700" />
+                        <div className="mt-4 pt-4 border-t border-accent-gold/20">
+                          <div className="text-xs font-bold text-accent-gold label-caps flex items-center gap-1.5 mb-2">
+                            <BookOpen className="w-3.5 h-3.5 text-accent-gold" />
                             <span>Verse Meaning & Context</span>
                           </div>
-                          <ul className="space-y-1.5 text-xs text-stone-700">
+                          <ul className="space-y-1.5 text-xs text-text-primary/80">
                             {verse.understanding.map((note, idx) => (
                               <li key={idx} className="flex items-start gap-2">
-                                <span className="text-emerald-600 mt-1">•</span>
+                                <span className="text-accent-gold mt-1">•</span>
                                 <span className="leading-relaxed">{note}</span>
                               </li>
                             ))}
@@ -321,21 +352,21 @@ export function SurahDeepDiveModal({
 
                       {/* Reflection Questions & Du'a */}
                       {verse.reflectionQuestions && verse.reflectionQuestions.length > 0 && (
-                        <div className="mt-4 p-4 rounded-xl bg-amber-50/60 border border-amber-200/60">
-                          <div className="text-xs font-semibold text-amber-900 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                            <HelpCircle className="w-3.5 h-3.5 text-amber-700" />
+                        <BorderedSubPanel className="mt-4">
+                          <div className="text-xs font-bold text-accent-gold label-caps flex items-center gap-1.5 mb-2">
+                            <HelpCircle className="w-3.5 h-3.5 text-accent-gold" />
                             <span>Contemplation Question</span>
                           </div>
-                          <p className="text-xs text-stone-800 italic leading-relaxed">
+                          <p className="text-xs text-text-primary italic leading-relaxed">
                             "{verse.reflectionQuestions[0]}"
                           </p>
                           {verse.dua && (
-                            <div className="mt-2.5 pt-2 border-t border-amber-200/50 flex items-start gap-2 text-xs text-stone-700">
-                              <span className="font-semibold text-amber-900 shrink-0">Du'a:</span>
+                            <div className="mt-2.5 pt-2 border-t border-accent-gold/25 flex items-start gap-2 text-xs text-text-primary">
+                              <span className="font-bold text-accent-gold shrink-0 label-caps">Du'a:</span>
                               <span className="italic">{verse.dua}</span>
                             </div>
                           )}
-                        </div>
+                        </BorderedSubPanel>
                       )}
 
                       {/* Tafsir Excerpt Accordion */}
@@ -343,36 +374,144 @@ export function SurahDeepDiveModal({
                         <div className="mt-3">
                           <button
                             onClick={() => setExpandedTafsir(isTafsirOpen ? null : verse.number)}
-                            className="text-xs text-stone-500 hover:text-emerald-800 font-medium inline-flex items-center gap-1 transition-colors"
+                            className="text-xs text-accent-gold hover:underline font-serif inline-flex items-center gap-1 transition-colors label-caps"
                           >
                             <span>Ibn Kathir Tafsir Excerpt</span>
                             {isTafsirOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                           </button>
                           {isTafsirOpen && (
-                            <div className="mt-2 p-3.5 bg-stone-100 rounded-xl text-xs text-stone-700 border border-stone-200 leading-relaxed animate-in fade-in duration-150">
-                              <span className="font-semibold text-stone-900 block mb-1">Tafsir Ibn Kathir:</span>
+                            <BorderedSubPanel className="mt-2 text-xs text-text-primary/90 leading-relaxed animate-in fade-in duration-150">
+                              <span className="font-bold text-accent-gold block mb-1 label-caps">Tafsir Ibn Kathir:</span>
                               {verse.tafsir}
-                            </div>
+                            </BorderedSubPanel>
                           )}
                         </div>
                       )}
                     </div>
                   );
                 })
+              ) : isLoadingRemote ? (
+                // Loading state from free keyless AlQuran Cloud API
+                <div className="text-center py-16 bg-bg-primary/90 rounded-2xl border border-accent-gold/40 p-8 relative">
+                  <CornerFlourishes />
+                  <Loader2 className="w-8 h-8 text-accent-gold animate-spin mx-auto mb-3" />
+                  <h4 className="text-text-primary font-bold text-base">Loading Chapter Verses & Tafsir...</h4>
+                  <p className="text-text-primary/70 text-xs mt-1">
+                    Retrieving authentic Arabic text, Saheeh International translation, and Tafsir Al-Muyassar via Al-Quran Cloud.
+                  </p>
+                </div>
+              ) : remoteAyahs.length > 0 ? (
+                // Remote verses rendered seamlessly
+                remoteAyahs.map((ayah) => {
+                  const isVerseSaved = savedItems.includes(`verse-${surah.id}-${ayah.numberInSurah}`);
+                  const isTafsirOpen = expandedTafsir === ayah.numberInSurah;
+
+                  return (
+                    <div
+                      key={ayah.numberInSurah}
+                      className="relative bg-bg-primary/90 rounded-2xl border border-accent-gold/40 p-5 sm:p-6 shadow-xs hover:border-accent-gold transition-all"
+                    >
+                      <CornerFlourishes size={12} opacity={0.6} />
+
+                      {/* Header */}
+                      <div className="flex items-center justify-between pb-4 border-b border-accent-gold/25">
+                        <div className="flex items-center gap-2">
+                          <span className="w-8 h-8 rounded-lg bg-bg-card border border-accent-gold/40 text-accent-gold font-bold text-xs flex items-center justify-center">
+                            {ayah.numberInSurah}
+                          </span>
+                          <span className="text-xs font-serif text-accent-gold-dim label-caps">
+                            Ayah {ayah.numberInSurah} of {surah.verses}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => playVerse(ayah.numberInSurah, ayah.arabic, ayah.translation)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-bg-card hover:bg-bg-card/80 border border-accent-gold/30 hover:border-accent-gold text-accent-gold text-xs font-serif transition-colors label-caps"
+                          >
+                            <Play className="w-3.5 h-3.5 text-accent-gold fill-accent-gold" />
+                            <span>Listen</span>
+                          </button>
+                          <button
+                            onClick={() => toggleSaved(`verse-${surah.id}-${ayah.numberInSurah}`)}
+                            className={`p-1.5 rounded-lg transition-colors border ${
+                              isVerseSaved
+                                ? 'text-accent-gold bg-accent-gold/15 border-accent-gold'
+                                : 'text-text-primary/40 border-transparent hover:text-accent-gold hover:border-accent-gold/30'
+                            }`}
+                          >
+                            {isVerseSaved ? <BookmarkCheck className="w-4 h-4 text-accent-gold" /> : <Bookmark className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Arabic Text */}
+                      <div className="py-6 text-right font-arabic text-2xl sm:text-3xl leading-[2.4] text-accent-gold tracking-wide select-text">
+                        {ayah.arabic}
+                      </div>
+
+                      {/* English Translation */}
+                      <div className="space-y-1.5 mt-2">
+                        <p className="text-text-primary text-base font-medium leading-relaxed font-serif">
+                          {ayah.translation}
+                        </p>
+                      </div>
+
+                      {/* Tafsir Accordion */}
+                      {ayah.tafsir && (
+                        <div className="mt-3">
+                          <button
+                            onClick={() => setExpandedTafsir(isTafsirOpen ? null : ayah.numberInSurah)}
+                            className="text-xs text-accent-gold hover:underline font-serif inline-flex items-center gap-1 transition-colors label-caps"
+                          >
+                            <span>Tafsir Al-Muyassar (تفسير الميسر)</span>
+                            {isTafsirOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                          </button>
+                          {isTafsirOpen && (
+                            <BorderedSubPanel className="mt-2 text-xs text-text-primary/90 leading-relaxed animate-in fade-in duration-150">
+                              <span className="font-bold text-accent-gold block mb-1 label-caps">تفسير مجمع الملك فهد:</span>
+                              <p className="font-arabic text-sm text-right leading-loose text-text-primary" dir="rtl">
+                                {ayah.tafsir}
+                              </p>
+                            </BorderedSubPanel>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                // Fallback state if offline or unable to load
+                <div className="text-center py-12 bg-bg-primary/90 rounded-2xl border border-accent-gold p-6 relative">
+                  <CornerFlourishes />
+                  <BookOpen className="w-10 h-10 text-accent-gold/40 mx-auto mb-3" />
+                  <h4 className="text-text-primary font-bold text-base">Surah Audio Recitation Ready</h4>
+                  <p className="text-text-primary/70 text-sm mt-1 max-w-md mx-auto">
+                    {remoteError
+                      ? 'Could not connect to live verses. Click "Play Full Surah" to listen to complete recitation.'
+                      : `Click "Play Full Surah" to listen to complete recitation by ${reciterId}.`}
+                  </p>
+                  <button
+                    onClick={playFullSurah}
+                    className="mt-4 px-4 py-2 bg-accent-gold hover:bg-accent-gold-dim text-bg-primary text-xs font-bold rounded-xl transition-colors label-caps"
+                  >
+                    Listen to Full Chapter ({surah.time})
+                  </button>
+                </div>
               )}
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="bg-white border-t border-stone-200 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-stone-500">
-            <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-            <span>Translations from Saheeh International & The Clear Quran</span>
+        <div className="bg-bg-primary border-t border-accent-gold/40 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-text-primary/70">
+            <CheckCircle2 className="w-4 h-4 text-accent-gold shrink-0" />
+            <span>Keyless Quran text & translations via Al-Quran Cloud (Saheeh International & Tafsir Al-Muyassar)</span>
           </div>
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 font-medium text-xs transition-colors"
+            className="px-5 py-2 rounded-xl bg-bg-card hover:bg-bg-card/80 border border-accent-gold/40 hover:border-accent-gold text-accent-gold font-bold text-xs transition-colors label-caps shrink-0"
           >
             Close Deep Dive
           </button>

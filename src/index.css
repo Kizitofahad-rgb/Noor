@@ -1,8 +1,39 @@
 @import "tailwindcss";
 
+:root {
+  --bg-primary: #0E1F17;
+  --bg-card: #122A1F;
+  --accent-gold: #C9A55C;
+  --accent-gold-dim: #B08D4F;
+  --text-primary: #F0E6D2;
+}
+
+@theme {
+  --color-bg-primary: #0E1F17;
+  --color-bg-card: #122A1F;
+  --color-accent-gold: #C9A55C;
+  --color-accent-gold-dim: #B08D4F;
+  --color-text-primary: #F0E6D2;
+
+  --font-serif: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --font-display: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  --font-arabic: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
+}
+
 @layer base {
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+
+  input, textarea, select, button {
+    font-family: inherit;
   }
 }
 
@@ -11,18 +42,40 @@
   direction: rtl;
 }
 
-/* Custom scrollbars for clean reflective aesthetic */
+/* Small-caps labels: same serif, with letter-spacing: 0.1em and text-transform: uppercase */
+.label-caps, .small-caps {
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Card with gold hairline border */
+.gold-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--accent-gold);
+  color: var(--text-primary);
+  position: relative;
+}
+
+/* Subtle sub-panel with gold border */
+.gold-subpanel {
+  background-color: rgba(14, 31, 23, 0.85);
+  border: 1px solid rgba(201, 165, 92, 0.4);
+  color: var(--text-primary);
+}
+
+/* Custom scrollbars with warm gold hue */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #0E1F17;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(16, 76, 57, 0.2);
+  background: rgba(201, 165, 92, 0.3);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 76, 57, 0.4);
+  background: rgba(201, 165, 92, 0.6);
 }

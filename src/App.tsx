@@ -23,7 +23,7 @@ function NoorApp() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-stone-900 flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900 pb-20 md:pb-16">
+    <div className="min-h-screen bg-bg-primary text-text-primary flex flex-col font-serif selection:bg-accent-gold/30 selection:text-text-primary pb-20 md:pb-16">
       {/* Top Navigation */}
       <Navbar
         activeTab={activeTab}
@@ -90,8 +90,8 @@ function NoorApp() {
 
       {/* Audio Settings & Reciter Selector Modal */}
       {isAudioSettingsOpen && (
-        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-stone-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-bg-card rounded-2xl max-w-md w-full shadow-2xl border border-accent-gold overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <ReciterSelector onClose={() => setIsAudioSettingsOpen(false)} />
           </div>
         </div>
