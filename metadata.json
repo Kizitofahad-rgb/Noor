@@ -1,0 +1,8 @@
+{
+  "name": "Noor",
+  "description": "A tranquil Islamic companion app for Quran recitation and deep dives, daily reflections, hadith & tafsir library, video reminders, and Arabic learning.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
