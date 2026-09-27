@@ -17,9 +17,11 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useNoor } from '@/context/NoorContext';
+import { useAuth } from '@/context/AuthContext';
 import { OrnamentedCard, BorderedSubPanel, CornerFlourishes, SectionDivider } from '../Ornamentation';
 
 export function ReelsView() {
+  const { user, openAuthModal, submitUserReel } = useAuth();
   const {
     reels,
     likedReels,
@@ -90,9 +92,14 @@ export function ReelsView() {
     });
   };
 
-  const handleSubmitReel = (e: React.FormEvent) => {
+  const handleSubmitReel = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle.trim() || !formSpeaker.trim() || !formQuote.trim()) return;
+
+    if (!user) {
+      openAuthModal('login');
+      return;
+    }
 
     let ytId: string | undefined = undefined;
     if (formYoutubeUrl.includes('youtube.com/watch?v=')) {
@@ -102,6 +109,12 @@ export function ReelsView() {
     } else if (formYoutubeUrl.trim()) {
       ytId = formYoutubeUrl.trim();
     }
+
+    // Save to PostgreSQL submitted_reels table
+    await submitUserReel(
+      formYoutubeUrl.trim() || `https://youtube.com/watch?v=${ytId || '_PiLcpSPfmQ'}`,
+      `${formTitle.trim()} (${formSpeaker.trim()}): ${formQuote.trim()}`
+    );
 
     addSubmittedReel({
       title: formTitle.trim(),
@@ -153,7 +166,13 @@ export function ReelsView() {
           </button>
 
           <button
-            onClick={() => setIsSubmitModalOpen(true)}
+            onClick={() => {
+              if (!user) {
+                openAuthModal('login');
+              } else {
+                setIsSubmitModalOpen(true);
+              }
+            }}
             className="px-4 py-2 rounded-xl bg-accent-gold hover:bg-accent-gold-dim text-bg-primary text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs transition-colors uppercase tracking-wider"
           >
             <PlusCircle className="w-4 h-4" />

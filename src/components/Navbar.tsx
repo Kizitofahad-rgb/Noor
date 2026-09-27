@@ -7,29 +7,39 @@ import {
   Sparkles,
   Film,
   Compass,
+  User,
+  LogIn,
+  Share2,
+  Scroll,
 } from 'lucide-react';
 import { useNoor } from '@/context/NoorContext';
+import { useAuth } from '@/context/AuthContext';
 
-export type TabKey = 'home' | 'quran' | 'library' | 'reels' | 'learn' | 'saved';
+export type TabKey = 'home' | 'quran' | 'stories' | 'library' | 'reels' | 'learn' | 'saved' | 'profile';
 
 export function Navbar({
   activeTab,
   onSelectTab,
   onOpenAudioSettings,
+  onOpenShareModal,
 }: {
   activeTab: TabKey;
   onSelectTab: (tab: TabKey) => void;
   onOpenAudioSettings: () => void;
+  onOpenShareModal?: () => void;
 }) {
   const { savedItems } = useNoor();
+  const { user, openAuthModal } = useAuth();
 
   const navItems: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: 'home', label: 'Today', icon: <Home className="w-4 h-4" /> },
-    { key: 'quran', label: 'Quran Hub', icon: <BookOpen className="w-4 h-4" /> },
+    { key: 'quran', label: 'Quran', icon: <BookOpen className="w-4 h-4" /> },
+    { key: 'stories', label: 'Stories', icon: <Scroll className="w-4 h-4" /> },
     { key: 'library', label: 'Library', icon: <Compass className="w-4 h-4" /> },
     { key: 'reels', label: 'Reels', icon: <Film className="w-4 h-4" /> },
     { key: 'learn', label: 'Arabic', icon: <Sparkles className="w-4 h-4" /> },
     { key: 'saved', label: 'Saved', icon: <Bookmark className="w-4 h-4" /> },
+    { key: 'profile', label: 'Profile', icon: <User className="w-4 h-4" /> },
   ];
 
   return (
@@ -90,14 +100,52 @@ export function Navbar({
 
           {/* Quick Action Badges */}
           <div className="flex items-center gap-2">
+            {onOpenShareModal && (
+              <button
+                onClick={onOpenShareModal}
+                title="Share Noor with family & friends"
+                className="px-3 py-2 text-text-primary hover:text-accent-gold rounded-xl transition-colors flex items-center gap-1.5 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold"
+              >
+                <Share2 className="w-4 h-4 text-accent-gold" />
+                <span className="text-xs font-semibold uppercase tracking-wider hidden lg:inline">Share</span>
+              </button>
+            )}
+
             <button
               onClick={onOpenAudioSettings}
               title="Recitation settings"
-              className="px-3.5 py-2 text-text-primary hover:text-accent-gold rounded-xl transition-colors flex items-center gap-2 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold"
+              className="px-3 py-2 text-text-primary hover:text-accent-gold rounded-xl transition-colors flex items-center gap-2 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold"
             >
               <Volume2 className="w-4 h-4 text-accent-gold" />
-              <span className="text-xs font-semibold uppercase tracking-wider hidden lg:inline">Recitation Audio</span>
+              <span className="text-xs font-semibold uppercase tracking-wider hidden lg:inline">Audio</span>
             </button>
+
+            {user ? (
+              <button
+                onClick={() => onSelectTab('profile')}
+                title="View your sacred profile & progress"
+                className={`px-3 py-2 rounded-xl transition-all flex items-center gap-2 border ${
+                  activeTab === 'profile'
+                    ? 'bg-accent-gold/25 border-accent-gold text-accent-gold shadow-xs'
+                    : 'bg-bg-card border-accent-gold/40 hover:border-accent-gold text-text-primary'
+                }`}
+              >
+                <div className="w-6 h-6 rounded-lg bg-bg-primary border border-accent-gold text-accent-gold flex items-center justify-center font-bold text-xs">
+                  {user.displayName ? user.displayName[0].toUpperCase() : 'U'}
+                </div>
+                <span className="text-xs font-semibold max-w-[100px] truncate hidden sm:inline">
+                  {user.displayName.split(' ')[0]}
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={() => openAuthModal('login')}
+                className="px-3.5 py-2 bg-accent-gold hover:bg-accent-gold-dim text-bg-primary rounded-xl transition-colors flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider shadow-xs"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+              </button>
+            )}
 
             <button
               onClick={() => onSelectTab('saved')}

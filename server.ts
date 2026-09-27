@@ -3,10 +3,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express, { type Request, type Response } from 'express';
+import cookieParser from 'cookie-parser';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { apiRouter } from './src/server/routes.js';
 
 // ============================================================================
 // CONFIGURATION & FALLBACK KEYS
@@ -51,6 +53,13 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
+
+// Serve static assets from public/ (PWA manifest, icons, service worker)
+app.use(express.static(path.resolve(__dirname, 'public')));
+
+// Mount authentication, user progress, and submission routes under /api
+app.use('/api', apiRouter);
 
 // Log active configuration on startup without leaking secrets
 console.log(`[Startup Config] Port: ${PORT} | Host: ${HOST} | Node Env: ${process.env.NODE_ENV || 'production'}`);

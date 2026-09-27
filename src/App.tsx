@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { NoorProvider } from './context/NoorContext';
+import { AuthProvider } from './context/AuthContext';
 import { Navbar, type TabKey } from './components/Navbar';
 import { HomeView } from './components/views/HomeView';
 import { QuranView } from './components/views/QuranView';
+import { StoriesView } from './components/views/StoriesView';
 import { LibraryView } from './components/views/LibraryView';
 import { ReelsView } from './components/views/ReelsView';
 import { LearnView } from './components/views/LearnView';
 import { SavedView } from './components/views/SavedView';
+import { ProfileView } from './components/views/ProfileView';
+import { AuthModal } from './components/AuthModal';
+import { ShareNoorModal } from './components/ShareNoorModal';
 import { AudioPlayerBar, type ActiveAudioState } from './components/AudioPlayerBar';
 import { ReciterSelector } from './components/ReciterSelector';
 import { SurahDeepDiveModal } from './components/SurahDeepDiveModal';
@@ -16,6 +21,7 @@ function NoorApp() {
   const [activeTab, setActiveTab] = useState<TabKey>('home');
   const [activeAudio, setActiveAudio] = useState<ActiveAudioState | null>(null);
   const [isAudioSettingsOpen, setIsAudioSettingsOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [selectedSurahForDive, setSelectedSurahForDive] = useState<Surah | null>(null);
 
   const handlePlayAudio = (state: ActiveAudioState) => {
@@ -32,6 +38,7 @@ function NoorApp() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onOpenAudioSettings={() => setIsAudioSettingsOpen(true)}
+        onOpenShareModal={() => setIsShareModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -55,6 +62,17 @@ function NoorApp() {
           />
         )}
 
+        {activeTab === 'stories' && (
+          <StoriesView
+            onOpenSurah={(surah) => setSelectedSurahForDive(surah)}
+            onNavigate={(tab) => {
+              setActiveTab(tab);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onOpenShareModal={() => setIsShareModalOpen(true)}
+          />
+        )}
+
         {activeTab === 'library' && <LibraryView />}
 
         {activeTab === 'reels' && <ReelsView />}
@@ -68,6 +86,17 @@ function NoorApp() {
               setActiveTab(tab);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
+          />
+        )}
+
+        {activeTab === 'profile' && (
+          <ProfileView
+            onOpenSurah={(surah) => setSelectedSurahForDive(surah)}
+            onNavigate={(tab) => {
+              setActiveTab(tab);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onOpenShareModal={() => setIsShareModalOpen(true)}
           />
         )}
       </main>
@@ -96,14 +125,25 @@ function NoorApp() {
           </div>
         </div>
       )}
+
+      {/* Authentication Modal (Sign In & Sign Up) */}
+      <AuthModal />
+
+      {/* Share Noor Dialog (Web Share & PWA Install) */}
+      <ShareNoorModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+      />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <NoorProvider>
-      <NoorApp />
-    </NoorProvider>
+    <AuthProvider>
+      <NoorProvider>
+        <NoorApp />
+      </NoorProvider>
+    </AuthProvider>
   );
 }

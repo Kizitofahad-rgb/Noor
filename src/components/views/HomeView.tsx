@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   PenLine,
   Send,
+  Scroll,
 } from 'lucide-react';
 import { moods, reflections, surahs, type MoodId, type Surah } from '@/lib/content';
 import { useNoor } from '@/context/NoorContext';
@@ -27,7 +28,7 @@ export function HomeView({
   onOpenSurah,
   onPlayAudio,
 }: {
-  onNavigate: (tab: 'home' | 'quran' | 'library' | 'reels' | 'learn' | 'saved') => void;
+  onNavigate: (tab: any) => void;
   onOpenSurah: (surah: Surah) => void;
   onPlayAudio: (state: ActiveAudioState) => void;
 }) {
@@ -318,6 +319,17 @@ export function HomeView({
           </OrnamentedCard>
 
           <OrnamentedCard
+            onClick={() => onNavigate('stories')}
+            className="p-5 sm:p-6 text-left group cursor-pointer hover:border-accent-gold transition-colors"
+          >
+            <div className="w-12 h-12 rounded-xl bg-bg-primary border border-accent-gold/45 text-accent-gold flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <Scroll className="w-6 h-6" />
+            </div>
+            <div className="font-bold text-text-primary text-base sm:text-lg">Prophet Stories</div>
+            <div className="text-sm text-text-secondary mt-1">Lives, wisdom & audio narration</div>
+          </OrnamentedCard>
+
+          <OrnamentedCard
             onClick={() => onNavigate('library')}
             className="p-5 sm:p-6 text-left group cursor-pointer hover:border-accent-gold transition-colors"
           >
@@ -326,17 +338,6 @@ export function HomeView({
             </div>
             <div className="font-bold text-text-primary text-base sm:text-lg">Hadith & Tafsir</div>
             <div className="text-sm text-text-secondary mt-1">Authenticated wisdom</div>
-          </OrnamentedCard>
-
-          <OrnamentedCard
-            onClick={() => onNavigate('learn')}
-            className="p-5 sm:p-6 text-left group cursor-pointer hover:border-accent-gold transition-colors"
-          >
-            <div className="w-12 h-12 rounded-xl bg-bg-primary border border-accent-gold/45 text-accent-gold flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <div className="font-bold text-text-primary text-base sm:text-lg">Arabic Track</div>
-            <div className="text-sm text-text-secondary mt-1">Alphabet & Glossary</div>
           </OrnamentedCard>
 
           <OrnamentedCard

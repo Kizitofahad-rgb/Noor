@@ -18,6 +18,7 @@ import { tajweedStyles } from '@/lib/tajweed';
 import { getVerseAudioUrl, getSurahAudioUrl } from '@/lib/recitationAudio';
 import { fetchSurahFromAlQuranCloud, type RemoteAyah } from '@/lib/quranApi';
 import { useNoor } from '@/context/NoorContext';
+import { useAuth } from '@/context/AuthContext';
 import type { ActiveAudioState } from './AudioPlayerBar';
 import { CornerFlourishes, BorderedSubPanel } from './Ornamentation';
 
@@ -31,8 +32,42 @@ export function SurahDeepDiveModal({
   onPlayAudio: (state: ActiveAudioState) => void;
 }) {
   const { savedItems, toggleSaved, markSurahRead, reciterId } = useNoor();
+  const { user, saveProgress, userProgress, openAuthModal, refreshProgress } = useAuth();
   const [activeTab, setActiveTab] = useState<'study' | 'overview'>('study');
   const [expandedTafsir, setExpandedTafsir] = useState<number | null>(null);
+
+  const isSurahPracticedInDb = userProgress.some(
+    (p) => String(p.surahId) === String(surah.number) && !p.verseId
+  );
+
+  const handleMarkSurahPracticed = async () => {
+    if (!user) {
+      openAuthModal('login');
+      return;
+    }
+    await saveProgress(surah.number, undefined, 'practiced');
+    markSurahRead(String(surah.number));
+  };
+
+  const handleToggleVersePracticed = async (verseNum: number) => {
+    if (!user) {
+      openAuthModal('login');
+      return;
+    }
+    const existing = userProgress.find(
+      (p) => String(p.surahId) === String(surah.number) && String(p.verseId) === String(verseNum)
+    );
+    if (existing) {
+      try {
+        await fetch(`/api/progress/${existing.id}`, { method: 'DELETE' });
+        await refreshProgress();
+      } catch (e) {
+        console.error('Failed to toggle verse progress:', e);
+      }
+    } else {
+      await saveProgress(surah.number, verseNum, 'practiced');
+    }
+  };
 
   // Local curated verses (for featured surahs with word-by-word Tajweed & reflections)
   const surahVerses = verses.filter((v) => v.surahId === surah.id);
@@ -169,7 +204,19 @@ export function SurahDeepDiveModal({
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <button
+              onClick={handleMarkSurahPracticed}
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all uppercase tracking-wider border ${
+                isSurahPracticedInDb
+                  ? 'bg-emerald-950/70 text-emerald-300 border-emerald-500/50'
+                  : 'bg-bg-card hover:bg-bg-card/80 text-accent-gold border-accent-gold/40'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{isSurahPracticedInDb ? 'Practiced ✓' : 'Mark Practiced'}</span>
+            </button>
+
             <button
               onClick={playFullSurah}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent-gold hover:bg-accent-gold-dim text-bg-primary text-xs sm:text-sm font-bold transition-transform active:scale-95 shadow-xs uppercase tracking-wider"
@@ -243,6 +290,9 @@ export function SurahDeepDiveModal({
                 surahVerses.map((verse) => {
                   const isVerseSaved = savedItems.includes(`verse-${surah.id}-${verse.number}`);
                   const isTafsirOpen = expandedTafsir === verse.number;
+                  const isVersePracticed = userProgress.some(
+                    (p) => String(p.surahId) === String(surah.number) && String(p.verseId) === String(verse.number)
+                  );
 
                   return (
                     <div
@@ -263,6 +313,17 @@ export function SurahDeepDiveModal({
                         </div>
 
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleToggleVersePracticed(verse.number)}
+                            title={isVersePracticed ? 'Marked as practiced in your profile' : 'Mark Ayah as practiced'}
+                            className={`p-2 rounded-lg transition-colors border ${
+                              isVersePracticed
+                                ? 'text-emerald-400 bg-emerald-950/60 border-emerald-500/50'
+                                : 'text-text-muted border-transparent hover:text-emerald-400 hover:border-emerald-500/30'
+                            }`}
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={() => playVerse(verse.number)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-card hover:bg-bg-card/80 border border-accent-gold/35 hover:border-accent-gold text-accent-gold text-xs font-semibold transition-colors uppercase tracking-wider"
@@ -405,6 +466,9 @@ export function SurahDeepDiveModal({
                 remoteAyahs.map((ayah) => {
                   const isVerseSaved = savedItems.includes(`verse-${surah.id}-${ayah.numberInSurah}`);
                   const isTafsirOpen = expandedTafsir === ayah.numberInSurah;
+                  const isAyahPracticed = userProgress.some(
+                    (p) => String(p.surahId) === String(surah.number) && String(p.verseId) === String(ayah.numberInSurah)
+                  );
 
                   return (
                     <div
@@ -425,6 +489,17 @@ export function SurahDeepDiveModal({
                         </div>
 
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleToggleVersePracticed(ayah.numberInSurah)}
+                            title={isAyahPracticed ? 'Marked as practiced in your profile' : 'Mark Ayah as practiced'}
+                            className={`p-2 rounded-lg transition-colors border ${
+                              isAyahPracticed
+                                ? 'text-emerald-400 bg-emerald-950/60 border-emerald-500/50'
+                                : 'text-text-muted border-transparent hover:text-emerald-400 hover:border-emerald-500/30'
+                            }`}
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={() => playVerse(ayah.numberInSurah, ayah.arabic, ayah.translation)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-card hover:bg-bg-card/80 border border-accent-gold/35 hover:border-accent-gold text-accent-gold text-xs font-semibold transition-colors uppercase tracking-wider"
