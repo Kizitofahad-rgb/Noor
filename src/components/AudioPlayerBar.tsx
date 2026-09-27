@@ -126,79 +126,79 @@ export function AudioPlayerBar({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-bg-primary/95 backdrop-blur-md text-text-primary border-t border-accent-gold/40 shadow-2xl px-4 py-3 sm:px-6 font-serif">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-bg-primary/95 backdrop-blur-md text-text-primary border-t border-accent-gold/45 shadow-2xl px-4 py-3.5 sm:px-6">
       {/* Progress scrubber bar */}
       <div
         onClick={handleSeek}
-        className="absolute top-0 left-0 right-0 h-1 bg-bg-card cursor-pointer group"
+        className="absolute top-0 left-0 right-0 h-1.5 bg-bg-card cursor-pointer group"
       >
         <div
           className="h-full bg-accent-gold transition-all relative"
           style={{ width: `${progress}%` }}
         >
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-accent-gold rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-accent-gold rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
         {/* Track info */}
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-3.5 min-w-0">
           <button
             onClick={restart}
             title="Restart"
-            className="p-1.5 text-accent-gold/70 hover:text-accent-gold rounded-lg hover:bg-bg-card transition-colors hidden sm:block border border-accent-gold/20"
+            className="p-2 text-accent-gold/80 hover:text-accent-gold rounded-xl hover:bg-bg-card transition-colors hidden sm:block border border-accent-gold/30"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-4 h-4" />
           </button>
           <div className="truncate">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-text-primary truncate">{audioState.title}</span>
+            <div className="flex items-center gap-2.5">
+              <span className="font-bold text-base text-text-primary truncate font-serif">{audioState.title}</span>
               {audioState.arabicSnippet && (
-                <span className="font-arabic text-accent-gold text-base hidden md:inline truncate">
+                <span className="font-arabic text-accent-gold text-lg hidden md:inline truncate">
                   {audioState.arabicSnippet}
                 </span>
               )}
             </div>
-            <div className="text-xs text-text-primary/70 truncate">
-              {audioState.subtitle} · <span className="text-accent-gold font-medium">{activeReciter.name}</span>
+            <div className="text-sm text-text-secondary truncate mt-0.5">
+              {audioState.subtitle} · <span className="text-accent-gold font-semibold">{activeReciter.name}</span>
             </div>
           </div>
         </div>
 
         {/* Controls */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className="text-xs font-mono text-text-primary/60 hidden sm:block">
+          <div className="text-xs sm:text-sm font-mono text-text-secondary hidden sm:block font-medium">
             {formatSec(currentTime)} / {formatSec(duration)}
           </div>
 
           <button
             onClick={togglePlay}
             disabled={loading}
-            className="w-10 h-10 rounded-full bg-accent-gold hover:bg-accent-gold-dim text-bg-primary flex items-center justify-center transition-transform active:scale-95 shadow-md shrink-0"
+            className="w-11 h-11 rounded-full bg-accent-gold hover:bg-accent-gold-dim text-bg-primary flex items-center justify-center transition-transform active:scale-95 shadow-md shrink-0 cursor-pointer"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-bg-primary border-t-transparent rounded-full animate-spin" />
             ) : isPlaying ? (
-              <Pause className="w-4 h-4 fill-current" />
+              <Pause className="w-5 h-5 fill-current" />
             ) : (
-              <Play className="w-4 h-4 ml-0.5 fill-current" />
+              <Play className="w-5 h-5 ml-0.5 fill-current" />
             )}
           </button>
 
           <button
             onClick={onOpenSettings}
-            className="p-2 text-text-primary/90 hover:text-accent-gold hover:bg-bg-card rounded-xl text-xs flex items-center gap-1.5 transition-colors border border-accent-gold/30"
+            className="px-3 py-2 text-text-primary hover:text-accent-gold hover:bg-bg-card rounded-xl text-xs sm:text-sm flex items-center gap-1.5 transition-colors border border-accent-gold/35"
           >
             <Volume2 className="w-4 h-4 text-accent-gold" />
-            <span className="hidden md:inline font-medium">Reciter</span>
-            <span className="px-1.5 py-0.5 bg-bg-card rounded text-[10px] text-accent-gold font-mono border border-accent-gold/20">
+            <span className="hidden md:inline font-semibold">Reciter</span>
+            <span className="px-1.5 py-0.5 bg-bg-card rounded text-xs text-accent-gold font-mono border border-accent-gold/30 font-bold">
               {audioRate}x
             </span>
           </button>
 
           <button
             onClick={onClose}
-            className="p-1.5 text-text-primary/60 hover:text-accent-gold rounded-xl hover:bg-bg-card transition-colors border border-accent-gold/20"
+            className="p-2 text-text-secondary hover:text-accent-gold rounded-xl hover:bg-bg-card transition-colors border border-accent-gold/25"
           >
             <X className="w-4 h-4" />
           </button>

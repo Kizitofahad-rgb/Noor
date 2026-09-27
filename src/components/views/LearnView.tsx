@@ -55,67 +55,67 @@ export function LearnView() {
   });
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12 font-serif text-text-primary">
+    <div className="space-y-8 max-w-5xl mx-auto pb-14 text-text-primary">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary tracking-tight font-serif">
           Arabic Learning Track (مسار لغة القرآن)
         </h1>
-        <p className="text-text-primary/70 text-xs sm:text-sm mt-1">
+        <p className="text-text-secondary text-sm sm:text-base mt-1">
           Read, understand, and connect with Quranic Arabic from letters to profound theological concepts.
         </p>
       </div>
 
       {/* Structured Curriculum Progress Cards */}
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold text-accent-gold uppercase tracking-wider label-caps">
+          <h2 className="text-xs sm:text-sm font-bold text-accent-gold uppercase tracking-wider">
             Curriculum Lessons ({completedLessons.length}/{lessons.length} Completed)
           </h2>
-          <span className="text-xs text-accent-gold font-bold label-caps">
+          <span className="text-xs sm:text-sm text-accent-gold font-bold uppercase tracking-wider">
             {Math.round((completedLessons.length / lessons.length) * 100)}% Complete
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {lessons.map((lesson) => {
             const isDone = isLessonCompleted(lesson.id);
             return (
               <OrnamentedCard
                 key={lesson.id}
                 onClick={() => toggleLesson(lesson.id)}
-                className={`p-4 flex items-center justify-between gap-4 transition-all ${
+                className={`p-5 flex items-center justify-between gap-4 transition-all cursor-pointer ${
                   isDone
                     ? 'border-accent-gold bg-accent-gold/15'
                     : 'border-accent-gold/40 hover:border-accent-gold'
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${
                       isDone
                         ? 'bg-accent-gold text-bg-primary border-accent-gold font-bold'
-                        : 'bg-bg-primary text-accent-gold border-accent-gold/40'
+                        : 'bg-bg-primary text-accent-gold border-accent-gold/45'
                     }`}
                   >
-                    {isDone ? <Check className="w-4 h-4" /> : <BookOpen className="w-4 h-4" />}
+                    {isDone ? <Check className="w-5 h-5" /> : <BookOpen className="w-5 h-5" />}
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-text-primary">{lesson.title}</h3>
-                    <p className="text-xs text-text-primary/70">{lesson.subtitle}</p>
+                    <h3 className="font-bold text-base text-text-primary">{lesson.title}</h3>
+                    <p className="text-sm text-text-secondary mt-0.5">{lesson.subtitle}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[11px] text-accent-gold-dim font-mono">{lesson.duration}</span>
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <span className="text-xs text-accent-gold font-mono font-medium">{lesson.duration}</span>
                   <div
-                    className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                    className={`w-6 h-6 rounded-full border flex items-center justify-center ${
                       isDone
                         ? 'bg-accent-gold border-accent-gold text-bg-primary font-bold'
-                        : 'border-accent-gold/40 bg-bg-primary'
+                        : 'border-accent-gold/45 bg-bg-primary'
                     }`}
                   >
-                    {isDone && <Check className="w-3 h-3" />}
+                    {isDone && <Check className="w-3.5 h-3.5" />}
                   </div>
                 </div>
               </OrnamentedCard>
@@ -126,33 +126,33 @@ export function LearnView() {
 
       {/* Tabs: Alphabet, Tajweed, Glossary */}
       <div className="space-y-6 pt-4 border-t border-accent-gold/25">
-        <div className="flex items-center gap-2 bg-bg-card/90 border border-accent-gold/30 p-1.5 rounded-2xl w-full sm:w-max">
+        <div className="flex items-center gap-2 bg-bg-card/90 border border-accent-gold/35 p-1.5 rounded-2xl w-full sm:w-max">
           <button
             onClick={() => setActiveTab('alphabet')}
-            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-serif transition-all label-caps ${
+            className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all uppercase tracking-wider ${
               activeTab === 'alphabet'
-                ? 'bg-bg-primary text-accent-gold border border-accent-gold/50 shadow-xs font-bold'
-                : 'text-text-primary/70 hover:text-text-primary'
+                ? 'bg-accent-gold/25 text-accent-gold border border-accent-gold/50 shadow-xs'
+                : 'text-text-secondary hover:text-text-primary'
             }`}
           >
             Alphabet & Pronunciation
           </button>
           <button
             onClick={() => setActiveTab('tajweed')}
-            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-serif transition-all label-caps ${
+            className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all uppercase tracking-wider ${
               activeTab === 'tajweed'
-                ? 'bg-bg-primary text-accent-gold border border-accent-gold/50 shadow-xs font-bold'
-                : 'text-text-primary/70 hover:text-text-primary'
+                ? 'bg-accent-gold/25 text-accent-gold border border-accent-gold/50 shadow-xs'
+                : 'text-text-secondary hover:text-text-primary'
             }`}
           >
             Tajweed Essentials
           </button>
           <button
             onClick={() => setActiveTab('glossary')}
-            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-serif transition-all label-caps ${
+            className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all uppercase tracking-wider ${
               activeTab === 'glossary'
-                ? 'bg-bg-primary text-accent-gold border border-accent-gold/50 shadow-xs font-bold'
-                : 'text-text-primary/70 hover:text-text-primary'
+                ? 'bg-accent-gold/25 text-accent-gold border border-accent-gold/50 shadow-xs'
+                : 'text-text-secondary hover:text-text-primary'
             }`}
           >
             Spiritual Words Glossary ({glossary.length})
@@ -164,10 +164,10 @@ export function LearnView() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-text-primary">
+                <h3 className="text-lg font-bold text-text-primary font-serif">
                   Arabic Alphabet (Hurūf al-Hijā · حروف الهجاء)
                 </h3>
-                <p className="text-xs text-text-primary/70">
+                <p className="text-sm text-text-secondary mt-0.5">
                   Tap any letter card to listen to authentic vocal pronunciation and articulation origins (Makhārij).
                 </p>
               </div>
@@ -186,22 +186,22 @@ export function LearnView() {
                         : 'border-accent-gold/40 hover:border-accent-gold'
                     }`}
                   >
-                    <div className="font-arabic text-4xl text-accent-gold mb-2 font-bold select-none">
+                    <div className="font-arabic text-4xl sm:text-5xl text-accent-gold mb-2 font-bold select-none leading-tight">
                       {letter.arabic}
                     </div>
-                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-text-primary">
+                    <div className="flex items-center justify-center gap-1.5 text-sm font-bold text-text-primary">
                       <span>{letter.name}</span>
-                      <Volume2 className={`w-3.5 h-3.5 ${isPlaying ? 'text-accent-gold animate-pulse' : 'text-accent-gold-dim'}`} />
+                      <Volume2 className={`w-4 h-4 ${isPlaying ? 'text-accent-gold animate-pulse' : 'text-accent-gold-dim'}`} />
                     </div>
-                    <div className="text-[11px] text-text-primary/60 mt-1 font-mono">
+                    <div className="text-xs text-text-secondary mt-1 font-mono">
                       /{letter.transliteration}/
                     </div>
-                    <div className="mt-3 pt-3 border-t border-accent-gold/20 text-[11px]">
-                      <div className="text-accent-gold-dim text-[10px] label-caps font-semibold">Example Word</div>
-                      <div className="font-arabic text-lg text-accent-gold font-bold mt-0.5">
+                    <div className="mt-3.5 pt-3 border-t border-accent-gold/20 text-xs">
+                      <div className="text-accent-gold text-xs uppercase tracking-wider font-semibold">Example Word</div>
+                      <div className="font-arabic text-xl text-accent-gold font-bold mt-1">
                         {letter.exampleWord}
                       </div>
-                      <div className="text-[10px] text-text-primary/70">"{letter.exampleMeaning}"</div>
+                      <div className="text-xs sm:text-sm text-text-secondary mt-0.5">"{letter.exampleMeaning}"</div>
                     </div>
                   </OrnamentedCard>
                 );
@@ -214,13 +214,13 @@ export function LearnView() {
         {activeTab === 'tajweed' && (
           <div className="space-y-6">
             <OrnamentedCard className="p-6 sm:p-8 space-y-3">
-              <span className="text-xs font-bold label-caps text-accent-gold block">
+              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-accent-gold block">
                 The Science of Tajweed (علم التجويد)
               </span>
-              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary font-serif">
                 Why Pronunciation is an Act of Love
               </h3>
-              <p className="text-xs sm:text-sm text-text-primary/80 leading-relaxed max-w-2xl">
+              <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-2xl">
                 Tajweed comes from the root J-W-D meaning "to beautify and make excellent." It ensures that every letter is given its due right from its anatomical point of articulation without excess or deficiency.
               </p>
             </OrnamentedCard>
@@ -231,26 +231,26 @@ export function LearnView() {
                 return (
                   <OrnamentedCard
                     key={ruleKey}
-                    className="p-6 space-y-3"
+                    className="p-6 space-y-3.5"
                   >
                     <div className="flex items-center justify-between pb-3 border-b border-accent-gold/25">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         <span
-                          className="w-3.5 h-3.5 rounded-full"
+                          className="w-4 h-4 rounded-full"
                           style={{ backgroundColor: style.color }}
                         />
-                        <h4 className="font-bold text-text-primary text-base">{style.label}</h4>
+                        <h4 className="font-bold text-text-primary text-lg font-serif">{style.label}</h4>
                       </div>
-                      <span className="font-arabic text-xl font-bold" style={{ color: style.color }}>
+                      <span className="font-arabic text-2xl font-bold" style={{ color: style.color }}>
                         {style.arabicName}
                       </span>
                     </div>
 
-                    <BorderedSubPanel className="text-xs font-semibold text-text-primary p-3">
+                    <BorderedSubPanel className="text-sm font-semibold text-text-primary p-3.5">
                       Rule: {style.ruleTip}
                     </BorderedSubPanel>
 
-                    <p className="text-xs text-text-primary/80 leading-relaxed">{style.description}</p>
+                    <p className="text-sm text-text-secondary leading-relaxed">{style.description}</p>
                   </OrnamentedCard>
                 );
               })}
@@ -263,22 +263,22 @@ export function LearnView() {
           <div className="space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-base font-bold text-text-primary">
+                <h3 className="text-lg font-bold text-text-primary font-serif">
                   Quranic Words That Carry Worlds
                 </h3>
-                <p className="text-xs text-text-primary/70">
+                <p className="text-sm text-text-secondary mt-0.5">
                   Words with no single English equivalent, with their linguistic root and inner spiritual depth.
                 </p>
               </div>
 
-              <div className="relative w-full sm:w-64">
-                <Search className="w-4 h-4 text-accent-gold/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <div className="relative w-full sm:w-72">
+                <Search className="w-5 h-5 text-accent-gold/70 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={glossarySearch}
                   onChange={(e) => setGlossarySearch(e.target.value)}
                   placeholder="Filter glossary..."
-                  className="w-full bg-bg-card border border-accent-gold/40 rounded-xl pl-9 pr-3 py-1.5 text-xs text-text-primary placeholder:text-text-primary/40 focus:outline-none focus:border-accent-gold font-serif"
+                  className="w-full bg-bg-card border border-accent-gold/45 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-gold"
                 />
               </div>
             </div>
@@ -287,36 +287,36 @@ export function LearnView() {
               {filteredGlossary.map((word) => (
                 <OrnamentedCard
                   key={word.transliteration}
-                  className="p-6 space-y-3"
+                  className="p-6 space-y-3.5"
                 >
                   <div className="flex items-center justify-between pb-3 border-b border-accent-gold/25">
                     <div>
-                      <h4 className="font-bold text-text-primary text-lg">{word.transliteration}</h4>
-                      <div className="text-[11px] font-mono text-accent-gold font-semibold mt-0.5">
+                      <h4 className="font-bold text-text-primary text-xl font-serif">{word.transliteration}</h4>
+                      <div className="text-xs font-mono text-accent-gold font-semibold mt-0.5">
                         Root: {word.root}
                       </div>
                     </div>
-                    <span className="font-arabic text-3xl text-accent-gold font-bold">
+                    <span className="font-arabic text-3xl sm:text-4xl text-accent-gold font-bold">
                       {word.arabic}
                     </span>
                   </div>
 
                   <div>
-                    <span className="text-[10px] font-bold text-accent-gold-dim label-caps block mb-0.5">
+                    <span className="text-xs font-bold text-accent-gold uppercase tracking-wider block mb-1">
                       Direct Meaning
                     </span>
-                    <p className="text-xs font-semibold text-text-primary">{word.meaning}</p>
+                    <p className="text-base font-semibold text-text-primary">{word.meaning}</p>
                   </div>
 
                   <div>
-                    <span className="text-[10px] font-bold text-accent-gold-dim label-caps block mb-0.5">
+                    <span className="text-xs font-bold text-accent-gold uppercase tracking-wider block mb-1">
                       Deeper Theological Essence
                     </span>
-                    <p className="text-xs text-text-primary/80 leading-relaxed">{word.deepExplanation}</p>
+                    <p className="text-sm text-text-secondary leading-relaxed">{word.deepExplanation}</p>
                   </div>
 
-                  <BorderedSubPanel className="pt-2 text-[11px] text-text-primary/90 p-2.5 flex items-start gap-1.5 font-medium">
-                    <Sparkles className="w-3.5 h-3.5 text-accent-gold shrink-0 mt-0.5" />
+                  <BorderedSubPanel className="pt-2 text-xs sm:text-sm text-text-secondary p-3 flex items-start gap-2 font-medium">
+                    <Sparkles className="w-4 h-4 text-accent-gold shrink-0 mt-0.5" />
                     <span>{word.quranicOccurrence}</span>
                   </BorderedSubPanel>
                 </OrnamentedCard>

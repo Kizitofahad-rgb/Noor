@@ -61,25 +61,25 @@ export function Navbar({
           </div>
 
           {/* Desktop Navigation Tabs */}
-          <nav className="hidden md:flex items-center gap-1 bg-bg-card/90 border border-accent-gold/30 p-1 rounded-2xl">
+          <nav className="hidden md:flex items-center gap-1.5 bg-bg-card/90 border border-accent-gold/35 p-1.5 rounded-2xl">
             {navItems.map((item) => {
               const isActive = activeTab === item.key;
               return (
                 <button
                   key={item.key}
                   onClick={() => onSelectTab(item.key)}
-                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-serif transition-all relative ${
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all relative font-semibold ${
                     isActive
-                      ? 'bg-bg-primary text-accent-gold border border-accent-gold/50 shadow-xs font-semibold'
-                      : 'text-text-primary/70 hover:text-text-primary hover:bg-bg-primary/40'
+                      ? 'bg-accent-gold/25 text-accent-gold border border-accent-gold/50 shadow-xs'
+                      : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary/50'
                   }`}
                 >
-                  <span className={isActive ? 'text-accent-gold' : 'text-text-primary/50'}>
+                  <span className={isActive ? 'text-accent-gold' : 'text-text-muted'}>
                     {item.icon}
                   </span>
                   <span>{item.label}</span>
                   {item.key === 'saved' && savedItems.length > 0 && (
-                    <span className="w-4 h-4 rounded-full bg-accent-gold text-bg-primary text-[9px] font-bold flex items-center justify-center">
+                    <span className="w-4 h-4 rounded-full bg-accent-gold text-bg-primary text-[10px] font-bold flex items-center justify-center">
                       {savedItems.length}
                     </span>
                   )}
@@ -93,15 +93,15 @@ export function Navbar({
             <button
               onClick={onOpenAudioSettings}
               title="Recitation settings"
-              className="p-2 text-text-primary/90 hover:text-accent-gold rounded-xl transition-colors flex items-center gap-1.5 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold"
+              className="px-3.5 py-2 text-text-primary hover:text-accent-gold rounded-xl transition-colors flex items-center gap-2 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold"
             >
               <Volume2 className="w-4 h-4 text-accent-gold" />
-              <span className="text-xs font-serif hidden lg:inline tracking-wider">Recitation Audio</span>
+              <span className="text-xs font-semibold uppercase tracking-wider hidden lg:inline">Recitation Audio</span>
             </button>
 
             <button
               onClick={() => onSelectTab('saved')}
-              className="md:hidden p-2 text-text-primary/80 rounded-xl hover:bg-bg-card relative border border-accent-gold/30"
+              className="md:hidden p-2 text-text-secondary rounded-xl hover:bg-bg-card relative border border-accent-gold/30"
             >
               <Bookmark className="w-4 h-4 text-accent-gold" />
               {savedItems.length > 0 && (
@@ -113,23 +113,23 @@ export function Navbar({
       </header>
 
       {/* Mobile Bottom Tab Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg-primary/98 backdrop-blur-md border-t border-accent-gold/30 px-2 py-2 flex items-center justify-around shadow-2xl">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg-primary/98 backdrop-blur-md border-t border-accent-gold/30 px-2 py-2.5 flex items-center justify-around shadow-2xl">
         {navItems.map((item) => {
           const isActive = activeTab === item.key;
           return (
             <button
               key={item.key}
               onClick={() => onSelectTab(item.key)}
-              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-colors relative font-serif ${
-                isActive ? 'text-accent-gold font-bold' : 'text-text-primary/60 font-normal'
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors relative ${
+                isActive ? 'text-accent-gold font-bold' : 'text-text-secondary font-medium'
               }`}
             >
-              <div className={isActive ? 'text-accent-gold scale-110' : 'text-text-primary/50'}>
+              <div className={isActive ? 'text-accent-gold scale-110' : 'text-text-muted'}>
                 {item.icon}
               </div>
-              <span className="text-[10px] mt-1">{item.label}</span>
+              <span className="text-xs mt-1">{item.label}</span>
               {item.key === 'saved' && savedItems.length > 0 && (
-                <span className="absolute top-0.5 right-2 w-3.5 h-3.5 rounded-full bg-accent-gold text-bg-primary text-[8px] font-bold flex items-center justify-center">
+                <span className="absolute top-0.5 right-2 w-4 h-4 rounded-full bg-accent-gold text-bg-primary text-[10px] font-bold flex items-center justify-center">
                   {savedItems.length}
                 </span>
               )}

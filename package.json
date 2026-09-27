@@ -11,6 +11,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "adhan": "^4.4.6",
     "clsx": "^2.1.1",
     "dotenv": "^18.0.4",
     "express": "^5.2.1",

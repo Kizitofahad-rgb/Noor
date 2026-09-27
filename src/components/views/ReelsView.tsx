@@ -127,14 +127,14 @@ export function ReelsView() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12 font-serif text-text-primary">
+    <div className="space-y-6 max-w-4xl mx-auto pb-14 text-text-primary">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary tracking-tight font-serif">
             Faith Reminders & Video Reels
           </h1>
-          <p className="text-text-primary/70 text-xs sm:text-sm mt-1">
+          <p className="text-text-secondary text-sm sm:text-base mt-1">
             Short, heart-centered reflections and video reminders powered by YouTube Data API v3.
           </p>
         </div>
@@ -142,10 +142,10 @@ export function ReelsView() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowAdminQueue(!showAdminQueue)}
-            className={`px-3 py-2 rounded-xl text-xs font-serif flex items-center gap-1.5 transition-colors border label-caps ${
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-1.5 transition-colors border font-semibold uppercase tracking-wider ${
               showAdminQueue
-                ? 'bg-bg-primary text-accent-gold border-accent-gold shadow-xs font-bold'
-                : 'bg-bg-card text-text-primary/80 border-accent-gold/40 hover:border-accent-gold hover:text-text-primary'
+                ? 'bg-accent-gold/25 text-accent-gold border-accent-gold shadow-xs'
+                : 'bg-bg-card text-text-secondary border-accent-gold/40 hover:border-accent-gold hover:text-text-primary'
             }`}
           >
             <ShieldCheck className="w-4 h-4 text-accent-gold" />
@@ -154,7 +154,7 @@ export function ReelsView() {
 
           <button
             onClick={() => setIsSubmitModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-accent-gold hover:bg-accent-gold-dim text-bg-primary text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors label-caps"
+            className="px-4 py-2 rounded-xl bg-accent-gold hover:bg-accent-gold-dim text-bg-primary text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs transition-colors uppercase tracking-wider"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Submit a Reminder</span>
@@ -163,21 +163,21 @@ export function ReelsView() {
       </div>
 
       {/* Dynamic YouTube Search & Preset Filters */}
-      <OrnamentedCard className="p-4 sm:p-5 space-y-3">
+      <OrnamentedCard className="p-4 sm:p-5 space-y-3.5">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <form onSubmit={handleSearchSubmit} className="relative flex-1">
-            <Search className="w-4 h-4 text-accent-gold/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-5 h-5 text-accent-gold/70 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchTopic}
               onChange={(e) => setSearchTopic(e.target.value)}
               placeholder="Search YouTube (e.g. Quran recitation short, patience sabr, tahajjud)..."
-              className="w-full bg-bg-primary border border-accent-gold/40 rounded-2xl pl-10 pr-24 py-2.5 text-xs text-text-primary placeholder:text-text-primary/40 focus:outline-none focus:border-accent-gold font-serif"
+              className="w-full bg-bg-primary border border-accent-gold/45 rounded-2xl pl-12 pr-28 py-3 text-sm sm:text-base text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-gold"
             />
             <button
               type="submit"
               disabled={isLoadingReels}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1 bg-accent-gold text-bg-primary rounded-xl text-xs font-bold hover:bg-accent-gold-dim disabled:opacity-50 transition-colors shadow-2xs label-caps"
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-accent-gold text-bg-primary rounded-xl text-xs sm:text-sm font-bold hover:bg-accent-gold-dim disabled:opacity-50 transition-colors shadow-xs uppercase tracking-wider"
             >
               Search
             </button>
@@ -187,10 +187,10 @@ export function ReelsView() {
             <button
               onClick={() => fetchReels(activeSearchPreset)}
               disabled={isLoadingReels}
-              className="px-3.5 py-2 rounded-xl bg-bg-primary hover:bg-bg-primary/70 text-text-primary border border-accent-gold/40 hover:border-accent-gold text-xs font-serif flex items-center gap-1.5 transition-colors disabled:opacity-50 label-caps"
+              className="px-4 py-2.5 rounded-xl bg-bg-primary hover:bg-bg-primary/70 text-text-primary border border-accent-gold/40 hover:border-accent-gold text-xs sm:text-sm font-semibold flex items-center gap-2 transition-colors disabled:opacity-50 uppercase tracking-wider"
               title="Refresh from YouTube Data API"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-accent-gold ${isLoadingReels ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 text-accent-gold ${isLoadingReels ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh API</span>
             </button>
           </div>
@@ -198,7 +198,7 @@ export function ReelsView() {
 
         {/* Preset Search Chips */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <span className="text-[11px] font-bold text-accent-gold label-caps shrink-0">
+          <span className="text-xs font-bold text-accent-gold uppercase tracking-wider shrink-0">
             Suggested:
           </span>
           {searchPresets.map((preset) => {
@@ -207,10 +207,10 @@ export function ReelsView() {
               <button
                 key={preset.query}
                 onClick={() => handleSelectPreset(preset.query)}
-                className={`px-3 py-1 rounded-xl text-xs font-serif whitespace-nowrap transition-all border label-caps ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm whitespace-nowrap transition-all border uppercase tracking-wider font-semibold ${
                   isSelected
-                    ? 'bg-accent-gold text-bg-primary font-bold border-accent-gold shadow-2xs'
-                    : 'bg-bg-primary text-text-primary/80 border-accent-gold/30 hover:border-accent-gold hover:text-text-primary'
+                    ? 'bg-accent-gold text-bg-primary font-bold border-accent-gold shadow-xs'
+                    : 'bg-bg-primary text-text-secondary border-accent-gold/30 hover:border-accent-gold hover:text-text-primary'
                 }`}
               >
                 {preset.label}
@@ -369,36 +369,36 @@ export function ReelsView() {
 
               {/* Right / Information & Reflection Details */}
               <div className="p-6 md:w-5/12 flex flex-col justify-between space-y-4">
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-bg-primary text-accent-gold border border-accent-gold/40 label-caps">
+                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-bg-primary text-accent-gold border border-accent-gold/45 uppercase tracking-wider">
                       {reel.category}
                     </span>
-                    <span className="text-xs text-text-primary/60 flex items-center gap-1 font-mono">
-                      <Clock className="w-3.5 h-3.5 text-accent-gold/70" />
+                    <span className="text-xs text-text-secondary flex items-center gap-1.5 font-mono">
+                      <Clock className="w-3.5 h-3.5 text-accent-gold" />
                       {reel.duration}
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-text-primary leading-tight">
+                  <h3 className="text-lg sm:text-xl font-bold text-text-primary leading-tight font-serif">
                     {reel.title}
                   </h3>
 
-                  <div className="flex items-center gap-2 text-xs font-semibold text-accent-gold">
-                    <User className="w-3.5 h-3.5 text-accent-gold" />
+                  <div className="flex items-center gap-2 text-sm font-semibold text-accent-gold">
+                    <User className="w-4 h-4 text-accent-gold" />
                     <span>{reel.speaker}</span>
                     <span className="text-accent-gold-dim">·</span>
-                    <span className="text-text-primary/70 font-normal">{reel.topic}</span>
+                    <span className="text-text-secondary font-normal">{reel.topic}</span>
                   </div>
 
                   {/* Spiritual Quote Excerpt */}
-                  <BorderedSubPanel className="text-xs italic leading-relaxed text-text-primary/90 p-3.5">
+                  <BorderedSubPanel className="text-sm italic leading-relaxed text-text-primary p-4">
                     "{reel.quote}"
                   </BorderedSubPanel>
 
                   {reel.featuredAyah && (
-                    <div className="text-[11px] text-text-primary/70">
-                      <span className="font-bold text-accent-gold label-caps">Rooted in:</span>{' '}
+                    <div className="text-xs sm:text-sm text-text-secondary">
+                      <span className="font-bold text-accent-gold uppercase tracking-wider text-xs mr-1.5">Rooted in:</span>
                       {reel.featuredAyah}
                     </div>
                   )}
@@ -410,10 +410,10 @@ export function ReelsView() {
                         href={`https://www.youtube.com/watch?v=${reel.youtubeId}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-accent-gold hover:text-accent-gold-dim font-bold transition-colors group label-caps"
+                        className="inline-flex items-center gap-2 text-xs sm:text-sm text-accent-gold hover:text-accent-gold-dim font-bold transition-colors group uppercase tracking-wider"
                       >
                         <span>Watch on YouTube</span>
-                        <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                        <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                       </a>
                     </div>
                   )}
@@ -424,22 +424,22 @@ export function ReelsView() {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => toggleLikeReel(reel.id)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-serif transition-colors border ${
+                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors border ${
                         isLiked
-                          ? 'bg-accent-gold/20 text-accent-gold border-accent-gold'
-                          : 'bg-bg-primary text-text-primary/70 border-accent-gold/30 hover:border-accent-gold hover:text-text-primary'
+                          ? 'bg-accent-gold/25 text-accent-gold border-accent-gold'
+                          : 'bg-bg-primary text-text-secondary border-accent-gold/30 hover:border-accent-gold hover:text-text-primary'
                       }`}
                     >
-                      <Heart className={`w-3.5 h-3.5 text-accent-gold ${isLiked ? 'fill-current' : ''}`} />
+                      <Heart className={`w-4 h-4 text-accent-gold ${isLiked ? 'fill-current' : ''}`} />
                       <span>{reel.likesCount}</span>
                     </button>
 
                     <button
                       onClick={() => toggleSaved(`reel-${reel.id}`)}
-                      className={`p-2 rounded-xl transition-colors border ${
+                      className={`p-2.5 rounded-xl transition-colors border ${
                         isSaved
-                          ? 'text-accent-gold bg-accent-gold/15 border-accent-gold'
-                          : 'text-text-primary/40 border-transparent hover:text-accent-gold hover:border-accent-gold/30'
+                          ? 'text-accent-gold bg-accent-gold/20 border-accent-gold'
+                          : 'text-text-muted border-transparent hover:text-accent-gold hover:border-accent-gold/30'
                       }`}
                       title="Bookmark"
                     >
