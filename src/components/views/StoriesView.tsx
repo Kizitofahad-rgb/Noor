@@ -26,20 +26,36 @@ interface StoriesViewProps {
 }
 
 export function StoriesView({ onOpenSurah, onNavigate, onOpenShareModal }: StoriesViewProps) {
-  const [selectedStoryId, setSelectedStoryId] = useState<string>('idris');
+  const [selectedStoryId, setSelectedStoryId] = useState<string>('adam');
   const [searchQuery, setSearchQuery] = useState('');
+  const [storyCategory, setStoryCategory] = useState<'All' | 'Early' | 'Patriarchs' | 'Kings & Sages' | 'Seal'>('All');
   const [activeSectionId, setActiveSectionId] = useState<string | undefined>(undefined);
 
   const activeStory = prophetStories.find((s) => s.id === selectedStoryId) || prophetStories[0];
 
-  // Search filter across stories
-  const filteredStories = prophetStories.filter((s) => {
-    const q = searchQuery.toLowerCase();
+  // Category filter
+  const categorizedStories = prophetStories.filter((s) => {
+    if (storyCategory === 'All') return true;
+    if (storyCategory === 'Early') return ['adam', 'idris', 'nuh', 'hud', 'saleh'].includes(s.id);
+    if (storyCategory === 'Patriarchs') return ['ibrahim', 'ismail', 'yusuf', 'ayyub', 'shuaib'].includes(s.id);
+    if (storyCategory === 'Kings & Sages') return ['musa', 'dawud', 'sulayman', 'yunus', 'zakariyya', 'luqman', 'ashab-al-kahf'].includes(s.id);
+    if (storyCategory === 'Seal') return ['isa', 'muhammad', 'maryam'].includes(s.id);
+    return true;
+  });
+
+  // Search filter across stories (searches across all stories when searching, or within category when browsing)
+  const baseStories = searchQuery.trim() ? prophetStories : categorizedStories;
+  const filteredStories = baseStories.filter((s) => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
     return (
       s.name.toLowerCase().includes(q) ||
       s.meaning.toLowerCase().includes(q) ||
       s.biblicalEquivalent.toLowerCase().includes(q) ||
-      s.arabicName.includes(q)
+      s.arabicName.includes(q) ||
+      s.titleBadge.toLowerCase().includes(q) ||
+      s.eraAndLocation.toLowerCase().includes(q) ||
+      s.whoIsIntro.toLowerCase().includes(q)
     );
   });
 
@@ -114,6 +130,31 @@ export function StoriesView({ onOpenSurah, onNavigate, onOpenShareModal }: Stori
           <span className="text-xs text-text-muted self-end sm:self-auto font-mono">
             {prophetStories.length} Historical Chronologies
           </span>
+        </div>
+
+        {/* Timeline Category Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+          {(['All', 'Early', 'Patriarchs', 'Kings & Sages', 'Seal'] as const).map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setStoryCategory(cat)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all uppercase tracking-wider ${
+                storyCategory === cat
+                  ? 'bg-accent-gold/25 text-accent-gold border border-accent-gold/60 shadow-xs'
+                  : 'text-text-secondary hover:text-text-primary bg-bg-card/70 border border-accent-gold/20'
+              }`}
+            >
+              {cat === 'Early'
+                ? 'Early Prophets (Adam - Saleh)'
+                : cat === 'Patriarchs'
+                ? 'Patriarchs (Ibrahim - Shu\'ayb)'
+                : cat === 'Kings & Sages'
+                ? 'Kings & Sages (Musa - Cave)'
+                : cat === 'Seal'
+                ? 'The Seal & Maryam (\'Isa - Muhammad ﷺ)'
+                : 'All Chronicles'}
+            </button>
+          ))}
         </div>
 
         {/* Story Tab Tiles */}

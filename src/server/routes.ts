@@ -1,5 +1,5 @@
-import { Router, Response } from 'express';
-import { query } from './db.js';
+import { Router, type Response } from 'express';
+import { query } from './db.ts';
 import {
   hashPassword,
   comparePassword,
@@ -9,7 +9,7 @@ import {
   requireAuth,
   optionalAuth,
   type AuthenticatedRequest,
-} from './auth.js';
+} from './auth.ts';
 
 export const apiRouter = Router();
 

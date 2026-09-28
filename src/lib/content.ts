@@ -91,6 +91,8 @@ export type QuranVerse = {
   reflection: string;
 };
 
+import { all114Surahs } from './allSurahs';
+
 export type Surah = {
   id: string;
   number: number;
@@ -109,110 +111,7 @@ export type Surah = {
   };
 };
 
-export const surahs: Surah[] = [
-  {
-    id: '1',
-    number: 1,
-    name: 'Al-Fatihah',
-    arabic: 'الفاتحة',
-    meaning: 'The Opening',
-    verses: 7,
-    time: '2 min',
-    revelation: 'Meccan',
-    revelationOrder: 5,
-    intro: {
-      theme: 'The Essence of the Quran and Prayer',
-      verseCount: 7,
-      overview: 'Known as Umm al-Kitab (the Mother of the Book), Al-Fatihah is recited in every unit of prayer. It establishes the relationship between the servant and the Creator, starting with praise and culminating in a plea for guidance.',
-      keyTakeaway: 'Every beginning returns to mercy; worship and reliance on Allah are the two pillars of true inner peace.',
-    },
-  },
-  {
-    id: '2',
-    number: 2,
-    name: 'Al-Baqarah (Ayat al-Kursi)',
-    arabic: 'البقرة',
-    meaning: 'The Cow · Verse of the Throne',
-    verses: 286,
-    time: '3 min',
-    revelation: 'Medinan',
-    revelationOrder: 87,
-    intro: {
-      theme: 'Divine Sovereignty and Eternal Living',
-      verseCount: 1,
-      overview: 'Ayatul Kursi (Verse 255) is the greatest verse in the Quran as confirmed in authentic hadith. It proclaims the absolute transcendence, power, and ceaseless knowledge of Allah.',
-      keyTakeaway: 'The One who watches over galaxies never sleeps or forgets you.',
-    },
-  },
-  {
-    id: '36',
-    number: 36,
-    name: 'Ya-Sin',
-    arabic: 'يس',
-    meaning: 'Ya Sin',
-    verses: 83,
-    time: '18 min',
-    revelation: 'Meccan',
-    revelationOrder: 41,
-    intro: {
-      theme: 'The Heart of the Quran: Revelation, Resurrection, Signs',
-      verseCount: 83,
-      overview: 'Often called the heart of the Quran, Ya-Sin addresses the core creed: the authenticity of the message, parables of past nations, signs in nature, and certainty of the Day of Resurrection.',
-      keyTakeaway: 'Creation is charged with signs of resurrection; Allah needs only say "Be" and it is.',
-    },
-  },
-  {
-    id: '55',
-    number: 55,
-    name: 'Ar-Rahman',
-    arabic: 'الرحمن',
-    meaning: 'The Most Merciful',
-    verses: 78,
-    time: '15 min',
-    revelation: 'Medinan',
-    revelationOrder: 97,
-    intro: {
-      theme: 'The Boundless Favors of Allah and the Call to Gratitude',
-      verseCount: 78,
-      overview: 'Named after the Divine attribute of Mercy, this rhythmic surah repeats 31 times: "Which of the favors of your Lord will you deny?", guiding humanity and jinn to behold celestial order, oceanic boundaries, and heavenly gardens.',
-      keyTakeaway: 'Even in moments of loss, the uncounted gifts of Allah surround us.',
-    },
-  },
-  {
-    id: '67',
-    number: 67,
-    name: 'Al-Mulk',
-    arabic: 'الملك',
-    meaning: 'The Sovereignty',
-    verses: 30,
-    time: '8 min',
-    revelation: 'Meccan',
-    revelationOrder: 77,
-    intro: {
-      theme: 'The Majesty of Creation and Protection in the Grave',
-      verseCount: 30,
-      overview: 'Recited nightly by the Prophet ﷺ, Al-Mulk defends its reciter. It opens by declaring that life and death were created to test which of us is best in deed, urging the viewer to look at the heavens for any flaw.',
-      keyTakeaway: 'Contemplating the flawless balance of the universe aligns the soul with humility.',
-    },
-  },
-  {
-    id: '112',
-    number: 112,
-    name: 'Al-Ikhlas',
-    arabic: 'الإخلاص',
-    meaning: 'The Purity of Faith',
-    verses: 4,
-    time: '1 min',
-    revelation: 'Meccan',
-    revelationOrder: 22,
-    intro: {
-      theme: 'Absolute Monotheism (Tawhid)',
-      verseCount: 4,
-      overview: 'Equal to one-third of the Quran in meaning, Surah Al-Ikhlas defines the oneness and absolute independence of Allah, devoid of partners, lineage, or comparison.',
-      keyTakeaway: 'Purity of faith begins with recognizing Allah is completely unique and self-sufficient.',
-    },
-  },
-];
+export const surahs: Surah[] = all114Surahs;
 
 export const verses: QuranVerse[] = [
   // Surah 1: Al-Fatihah (Complete 7 verses)
@@ -684,28 +583,65 @@ export type ArabicLetter = {
   phonetic: string;
   exampleWord: string;
   exampleMeaning: string;
+  makhraj?: string;
 };
 
 export const arabicAlphabet: ArabicLetter[] = [
-  { name: 'Alif', arabic: 'ا', transliteration: 'a', phonetic: 'Deep breath sound, vowel elongation', exampleWord: 'أَمَل', exampleMeaning: 'Hope' },
-  { name: 'Ba', arabic: 'ب', transliteration: 'b', phonetic: 'Like English "b" with lips pressed', exampleWord: 'بَرَكَة', exampleMeaning: 'Blessing' },
-  { name: 'Ta', arabic: 'ت', transliteration: 't', phonetic: 'Soft dental "t", tongue behind upper teeth', exampleWord: 'تَوْبَة', exampleMeaning: 'Repentance' },
-  { name: 'Tha', arabic: 'ث', transliteration: 'th', phonetic: 'Soft "th" like in "think"', exampleWord: 'ثَوَاب', exampleMeaning: 'Divine reward' },
-  { name: 'Jim', arabic: 'ج', transliteration: 'j', phonetic: 'Soft "j" as in "jam" or "gem"', exampleWord: 'جَنَّة', exampleMeaning: 'Garden / Paradise' },
-  { name: 'Ha', arabic: 'ح', transliteration: 'ḥ', phonetic: 'Deep, warm, raspy throat "h" sound', exampleWord: 'حِكْمَة', exampleMeaning: 'Wisdom' },
-  { name: 'Kha', arabic: 'خ', transliteration: 'kh', phonetic: 'Fricative throat sound like German "Bach"', exampleWord: 'خَيْر', exampleMeaning: 'Goodness' },
-  { name: 'Dal', arabic: 'د', transliteration: 'd', phonetic: 'Dental "d" like in Spanish or French', exampleWord: 'دُعَاء', exampleMeaning: 'Supplication' },
-  { name: 'Dhal', arabic: 'ذ', transliteration: 'dh', phonetic: 'Voiced "th" like in "the" or "this"', exampleWord: 'ذِكْر', exampleMeaning: 'Remembrance' },
-  { name: 'Ra', arabic: 'ر', transliteration: 'r', phonetic: 'Lightly rolled, tap of the tongue tip', exampleWord: 'رَحْمَة', exampleMeaning: 'Mercy' },
-  { name: 'Zay', arabic: 'ز', transliteration: 'z', phonetic: 'Sharp buzzing "z" like in "zebra"', exampleWord: 'زَكَاة', exampleMeaning: 'Purification / Charity' },
-  { name: 'Sin', arabic: 'س', transliteration: 's', phonetic: 'Sharp clear "s" like in "sea"', exampleWord: 'سَلَام', exampleMeaning: 'Peace' },
+  { name: 'Alif', arabic: 'ا', transliteration: 'a / ā', phonetic: 'Deep open vowel sound originating from the chest cavity', exampleWord: 'أَمَل', exampleMeaning: 'Hope', makhraj: 'Al-Jawf (Oral & Chest Cavity)' },
+  { name: 'Ba', arabic: 'ب', transliteration: 'b', phonetic: 'Like English "b", articulated by pressing both lips together firmly', exampleWord: 'بَرَكَة', exampleMeaning: 'Blessing', makhraj: 'Ash-Shafatayn (Lips)' },
+  { name: 'Ta', arabic: 'ت', transliteration: 't', phonetic: 'Soft dental "t", tip of tongue touches the roots of upper front teeth', exampleWord: 'تَوْبَة', exampleMeaning: 'Repentance', makhraj: 'Tongue tip & Upper incisors' },
+  { name: 'Tha', arabic: 'ث', transliteration: 'th', phonetic: 'Soft voiceless "th" (as in "think"), tongue tip between front teeth', exampleWord: 'ثَوَاب', exampleMeaning: 'Divine reward', makhraj: 'Tongue tip & Edges of incisors' },
+  { name: 'Jim', arabic: 'ج', transliteration: 'j', phonetic: 'Soft "j" as in "gem", middle of tongue pressed against hard palate', exampleWord: 'جَنَّة', exampleMeaning: 'Paradise / Garden', makhraj: 'Wast al-Lisan (Middle of tongue)' },
+  { name: 'Ha', arabic: 'ح', transliteration: 'ḥ', phonetic: 'Deep, crisp, warm friction sound produced from middle of the throat', exampleWord: 'حِكْمَة', exampleMeaning: 'Wisdom', makhraj: 'Wast al-Halq (Mid-throat)' },
+  { name: 'Kha', arabic: 'خ', transliteration: 'kh', phonetic: 'Throaty rasping sound like "ch" in Scottish "loch" or German "Bach"', exampleWord: 'خَيْر', exampleMeaning: 'Goodness', makhraj: 'Adna al-Halq (Top of throat)' },
+  { name: 'Dal', arabic: 'د', transliteration: 'd', phonetic: 'Light dental "d", tongue tip against roots of upper incisors', exampleWord: 'دُعَاء', exampleMeaning: 'Supplication', makhraj: 'Tongue tip & Upper incisors' },
+  { name: 'Dhal', arabic: 'ذ', transliteration: 'dh', phonetic: 'Voiced "th" (as in "this" or "breathe"), tongue tip between teeth', exampleWord: 'ذِكْر', exampleMeaning: 'Remembrance', makhraj: 'Tongue tip & Edges of incisors' },
+  { name: 'Ra', arabic: 'ر', transliteration: 'r', phonetic: 'Lightly rolled single tap of tongue tip near upper gum line', exampleWord: 'رَحْمَة', exampleMeaning: 'Mercy', makhraj: 'Tongue tip & Palate ridge' },
+  { name: 'Zay', arabic: 'ز', transliteration: 'z', phonetic: 'Sharp buzzing "z" (as in "zebra"), tongue tip behind lower teeth', exampleWord: 'زَكَاة', exampleMeaning: 'Charity / Purification', makhraj: 'Tongue tip & Lower incisors' },
+  { name: 'Sin', arabic: 'س', transliteration: 's', phonetic: 'Clean, light, whistling "s" sound (as in "sea")', exampleWord: 'سَلَام', exampleMeaning: 'Peace', makhraj: 'Tongue tip & Lower incisors' },
+  { name: 'Shin', arabic: 'ش', transliteration: 'sh', phonetic: 'Soft voiceless "sh" (as in "shine"), spreading sound through mouth', exampleWord: 'شُكْر', exampleMeaning: 'Gratitude', makhraj: 'Wast al-Lisan (Middle of tongue)' },
+  { name: 'Sad', arabic: 'ص', transliteration: 'ṣ', phonetic: 'Deep emphatic "s", back of tongue elevated producing full-mouth resonance', exampleWord: 'صَبْر', exampleMeaning: 'Patience', makhraj: 'Tongue tip & Lower teeth (Tafkheem)' },
+  { name: 'Dad', arabic: 'ض', transliteration: 'ḍ', phonetic: 'Unique emphatic letter: side edge of tongue against upper molars', exampleWord: 'ضِيَاء', exampleMeaning: 'Radiance', makhraj: 'Hafat al-Lisan (Sides of tongue)' },
+  { name: 'Ta\' (Heavy)', arabic: 'ط', transliteration: 'ṭ', phonetic: 'Heavy explosive "t", back of tongue arched toward soft palate', exampleWord: 'طَهَارَة', exampleMeaning: 'Spiritual Purity', makhraj: 'Tongue tip & Upper incisors (Emphatic)' },
+  { name: 'Za\' (Heavy)', arabic: 'ظ', transliteration: 'ẓ', phonetic: 'Heavy emphatic voiced "th", tongue tip protrudes slightly', exampleWord: 'ظِلّ', exampleMeaning: 'Protective Shade', makhraj: 'Tongue tip & Upper edges (Emphatic)' },
+  { name: '\'Ayn', arabic: 'ع', transliteration: 'ʿ', phonetic: 'Deep guttural compression sound from the exact center of throat', exampleWord: 'عَدْل', exampleMeaning: 'Justice / Equity', makhraj: 'Wast al-Halq (Mid-throat)' },
+  { name: 'Ghayn', arabic: 'غ', transliteration: 'gh', phonetic: 'Velar voiced gargling sound from top of throat near uvula', exampleWord: 'غُفْرَان', exampleMeaning: 'Pardon & Forgiveness', makhraj: 'Adna al-Halq (Top of throat)' },
+  { name: 'Fa', arabic: 'ف', transliteration: 'f', phonetic: 'Soft labiodental "f", edges of upper incisors touch wet inner lower lip', exampleWord: 'فَوْز', exampleMeaning: 'Supreme Triumph', makhraj: 'Upper teeth & Lower lip' },
+  { name: 'Qaf', arabic: 'ق', transliteration: 'q', phonetic: 'Deep uvular stop from the very deepest root of the tongue', exampleWord: 'قُرْآن', exampleMeaning: 'The Noble Recitation', makhraj: 'Aqsa al-Lisan (Backmost tongue)' },
+  { name: 'Kaf', arabic: 'ك', transliteration: 'k', phonetic: 'Light crisp "k" sound slightly forward from Qaf, accompanied by whisper (Hams)', exampleWord: 'كَرِيم', exampleMeaning: 'Noble & Generous', makhraj: 'Back of tongue' },
+  { name: 'Lam', arabic: 'ل', transliteration: 'l', phonetic: 'Light clear "l", front tongue blade touches broad roof of mouth', exampleWord: 'لُطْف', exampleMeaning: 'Subtle Kindness / Grace', makhraj: 'Sides & tip of tongue' },
+  { name: 'Meem', arabic: 'م', transliteration: 'm', phonetic: 'Warm nasalized bilabial sound made by closing both lips naturally', exampleWord: 'مَوَدَّة', exampleMeaning: 'Affectionate Love', makhraj: 'Lips & Nasal cavity (Khaishum)' },
+  { name: 'Noon', arabic: 'ن', transliteration: 'n', phonetic: 'Front tongue tip with sweet nasal humming resonance (Ghunnah)', exampleWord: 'نُور', exampleMeaning: 'Divine Light', makhraj: 'Tongue tip & Nasal passage' },
+  { name: 'Ha\' (Soft)', arabic: 'هـ', transliteration: 'h', phonetic: 'Deep effortless sigh breath from the deepest base of the throat', exampleWord: 'هِدَايَة', exampleMeaning: 'Guidance', makhraj: 'Aqsa al-Halq (Deepest throat)' },
+  { name: 'Waw', arabic: 'و', transliteration: 'w / ū', phonetic: 'Rounded lip consonant glide or prolonged vowel "oo" sound', exampleWord: 'وَفَاء', exampleMeaning: 'Covenant Loyalty', makhraj: 'Rounded lips' },
+  { name: 'Ya', arabic: 'ي', transliteration: 'y / ī', phonetic: 'Mid-palate glide sound or prolonged vowel "ee" sound', exampleWord: 'يَقِين', exampleMeaning: 'Unshakable Certainty', makhraj: 'Middle of tongue' },
+];
+
+export type ArabicVowel = {
+  name: string;
+  arabicSymbol: string;
+  sound: string;
+  description: string;
+  example: string;
+  exampleMeaning: string;
+};
+
+export const arabicVowels: ArabicVowel[] = [
+  { name: 'Fat-hah', arabicSymbol: 'ـَ', sound: 'Short "a" (as in "bat")', description: 'A diagonal stroke written above the letter, opening the mouth vertically.', example: 'كَتَبَ (Kataba)', exampleMeaning: 'He wrote' },
+  { name: 'Kasrah', arabicSymbol: 'ـِ', sound: 'Short "i" (as in "bit")', description: 'A diagonal stroke written below the letter, slightly lowering the jaw.', example: 'عِلْم (ʿIlm)', exampleMeaning: 'Knowledge' },
+  { name: 'Dammah', arabicSymbol: 'ـُ', sound: 'Short "u" (as in "put")', description: 'A tiny Waw glyph written above the letter, rounding the lips forward.', example: 'نُور (Nūr)', exampleMeaning: 'Light' },
+  { name: 'Sukūn', arabicSymbol: 'ـْ', sound: 'Resting consonant (No vowel)', description: 'A small circle above the letter indicating a complete pause or stop of vowel movement.', example: 'قَلْب (Qalb)', exampleMeaning: 'Heart' },
+  { name: 'Shaddah', arabicSymbol: 'ـّ', sound: 'Doubled / stressed letter', description: 'A small "w" crown above the letter that combines two identical letters into one stressed syllable.', example: 'مُحَمَّد (Muḥammad)', exampleMeaning: 'The Praised One' },
+  { name: 'Tanwīn Fat-h', arabicSymbol: 'ـً', sound: '"-an" nunation', description: 'Double fat-hah at word ends, indicating indefiniteness with an "-an" sound.', example: 'شُكْرًا (Shukran)', exampleMeaning: 'With gratitude' },
+  { name: 'Tanwīn Kasr', arabicSymbol: 'ـٍ', sound: '"-in" nunation', description: 'Double kasrah below the final letter with an "-in" ending sound.', example: 'بِخَيْرٍ (Bi-khayr)', exampleMeaning: 'In goodness' },
+  { name: 'Tanwīn Damm', arabicSymbol: 'ـٌ', sound: '"-un" nunation', description: 'Double dammah mark above the final letter with an "-un" ending sound.', example: 'سَلَامٌ (Salāmun)', exampleMeaning: 'Peace' },
 ];
 
 export const lessons = [
   {
     id: 'alphabet-1',
     title: 'The Alphabet: Alif to Kha',
-    subtitle: 'Master the first 7 letters and their throat origins',
+    subtitle: 'Master the first 7 letters and throat origins',
     duration: '6 min',
     icon: 'type',
     category: 'Basics',
@@ -721,22 +657,58 @@ export const lessons = [
     summary: 'Focus on distinguishing similar-sounding letters like Dal vs Dhal and Ra vs Zay.',
   },
   {
+    id: 'alphabet-3',
+    title: 'The Alphabet: Shin to Fa',
+    subtitle: 'Heavy emphatic consonants (Sad, Dad, Ta, Za, \'Ayn, Ghayn)',
+    duration: '8 min',
+    icon: 'type',
+    category: 'Basics',
+    summary: 'Master the unique Arabic letters that give the Quran its majestic timbre, especially the throat compression of \'Ayn and edge-tongue Dad.',
+  },
+  {
+    id: 'alphabet-4',
+    title: 'The Alphabet: Qaf to Ya',
+    subtitle: 'Deep uvular stops, nasal letters, and vowel glides',
+    duration: '6 min',
+    icon: 'type',
+    category: 'Basics',
+    summary: 'Learn the contrast between deep Qaf and light Kaf, the flow of Lam and Meem, and the semi-vowels Waw and Ya.',
+  },
+  {
+    id: 'vowels-1',
+    title: 'Harakāt: The Short Vowels & Tanween',
+    subtitle: 'Fat-hah, Kasrah, Dammah, and Nunation',
+    duration: '8 min',
+    icon: 'type',
+    category: 'Basics',
+    summary: 'Vowels bring Arabic letters to life. Understand how short vowel marks govern pronunciation and grammatical meaning.',
+  },
+  {
     id: 'tajweed-1',
     title: 'Tajweed: The Art of Madd (Elongation)',
-    subtitle: 'Natural elongation vs prolonged wave counts',
+    subtitle: 'Natural 2-count vs prolonged 4, 5, and 6 counts',
     duration: '8 min',
     icon: 'volume-2',
     category: 'Tajweed',
-    summary: 'Madd means elongation. Learn how natural 2-beat vowels expand to 4, 5, or 6 counts when followed by Hamzah or Sukun.',
+    summary: 'Madd means elongation. Learn how natural 2-beat vowels expand when followed by Hamzah or Sukun in Quranic recitation.',
   },
   {
     id: 'tajweed-2',
-    title: 'Tajweed: Waqf, Wasl, and Ghunnah',
-    subtitle: 'Pauses, smooth joining, and nasal humming',
+    title: 'Tajweed: Rules of Nun Sakinah & Tanween',
+    subtitle: 'Izhar, Idgham, Iqlab, and Ikhfa',
     duration: '10 min',
     icon: 'volume-2',
     category: 'Tajweed',
-    summary: 'Master where to pause gracefully during recitation and how the nasal hum (Ghunnah) enriches letters Noon and Meem.',
+    summary: 'The four golden rules governing Noon Sakinah and Tanween: clear articulation (Izhar), merging (Idgham), conversion to Meem (Iqlab), and concealed humming (Ikhfa).',
+  },
+  {
+    id: 'tajweed-3',
+    title: 'Tajweed: Qalqalah (The Echo Bounce)',
+    subtitle: 'The 5 letters of resonance: Qaf, Ta, Ba, Jim, Dal',
+    duration: '7 min',
+    icon: 'volume-2',
+    category: 'Tajweed',
+    summary: 'When Qutb Jadd (قطب جد) letters carry Sukun, they release a clean rhythmic echo bounce that adds power to Quranic rhythm.',
   },
   {
     id: 'vocabulary-1',
@@ -746,6 +718,15 @@ export const lessons = [
     icon: 'book-open',
     category: 'Glossary',
     summary: 'Deep dive into Quranic words whose depth cannot be conveyed by single English synonyms.',
+  },
+  {
+    id: 'roots-1',
+    title: 'The Quranic 3-Letter Root System',
+    subtitle: 'How one root blossoms into dozens of spiritual meanings',
+    duration: '9 min',
+    icon: 'book-open',
+    category: 'Glossary',
+    summary: 'Understand how tri-consonantal Arabic roots like S-L-M (Peace), R-H-M (Mercy), and Sh-K-R (Gratitude) generate families of interrelated vocabulary.',
   },
 ];
 
@@ -814,5 +795,135 @@ export const glossary: GlossaryWord[] = [
     meaning: 'Complete purity of motive for the sake of Allah alone.',
     deepExplanation: 'Clearing your heart of all desire for applause, praise, or worldly benefit, so that your actions are as clear as purified honey.',
     quranicOccurrence: 'Quran 98:5 · "And they were not commanded except to worship Allah, being sincere to Him in religion."',
+  },
+  {
+    arabic: 'شُكْر',
+    transliteration: 'Shukr',
+    root: 'ش - ك - ر (Sh-K-R: to acknowledge bounty, overflow)',
+    meaning: 'Heartfelt recognition of favors that manifests in grateful action.',
+    deepExplanation: 'True Shukr involves three stages: heart acknowledgment, verbal praise, and using the blessing in a manner that pleases the Giver.',
+    quranicOccurrence: 'Quran 14:7 · "If you are grateful, I will surely increase you."',
+  },
+  {
+    arabic: 'مَغْفِرَة',
+    transliteration: 'Maghfirah',
+    root: 'غ - ف - ر (Gh-F-R: to cover, protect like a helmet)',
+    meaning: 'Pardon that shields the servant from both the guilt and consequences of sin.',
+    deepExplanation: 'Derived from "Mighfar" (a warrior\'s protective helmet), Maghfirah does not just erase sin; it shields the soul from spiritual harm and humiliation.',
+    quranicOccurrence: 'Quran 3:133 · "And hasten to forgiveness from your Lord."',
+  },
+  {
+    arabic: 'بَرَكَة',
+    transliteration: 'Barakah',
+    root: 'ب - ر - ك (B-R-K: to kneel, establish firmly, spring of water)',
+    meaning: 'Divine abundance that causes a small amount to satisfy and endure.',
+    deepExplanation: 'Barakah is intangible divine value added to time, wealth, health, or food, making a humble provision yield lasting spiritual fruit.',
+    quranicOccurrence: 'Quran 7:96 · "We would have opened for them blessings from the heaven and the earth."',
+  },
+  {
+    arabic: 'نُور',
+    transliteration: 'Nūr',
+    root: 'ن - و - ر (N-W-R: radiant illumination)',
+    meaning: 'Divine spiritual light that guides perception and dispels darkness.',
+    deepExplanation: 'In Quranic terminology, Nur is not merely optical radiance; it is the spiritual clarity that illuminates moral judgment and revives the dormant soul.',
+    quranicOccurrence: 'Quran 24:35 · "Allah is the Light of the heavens and the earth."',
+  },
+  {
+    arabic: 'حِكْمَة',
+    transliteration: 'Ḥikmah',
+    root: 'ح - ك - م (Ḥ-K-M: to restrain, place a bridle, judge justly)',
+    meaning: 'Wisdom: placing everything in its exact, rightful place with discernment.',
+    deepExplanation: 'Knowledge is possessing facts, but Hikmah is the spiritual insight to act with appropriate timing, gentleness, and moral justice.',
+    quranicOccurrence: 'Quran 2:269 · "He gives wisdom to whom He wills, and whoever has been given wisdom has certainly been given abundant good."',
+  },
+  {
+    arabic: 'فِطْرَة',
+    transliteration: 'Fiṭrah',
+    root: 'ف - ط - ر (F-Ṭ-R: to originate, split open naturally)',
+    meaning: 'The primordial, innate human inclination toward monotheism and moral good.',
+    deepExplanation: 'Every human soul is born with an innate spiritual compass attuned to recognize truth, divine oneness, and compassion before social conditioning.',
+    quranicOccurrence: 'Quran 30:30 · "The natural disposition of Allah upon which He has created mankind."',
+  },
+  {
+    arabic: 'يَقِين',
+    transliteration: 'Yaqīn',
+    root: 'ي - ق - ن (Y-Q-N: clear water, settled truth)',
+    meaning: 'Unwavering certainty that dispels all doubt and anxiety.',
+    deepExplanation: 'Scholars distinguish three levels: knowledge of certainty (\'Ilm al-Yaqeen), seeing with eyes of certainty (\'Ayn al-Yaqeen), and total living reality (Haqq al-Yaqeen).',
+    quranicOccurrence: 'Quran 15:99 · "And worship your Lord until there comes to you the certainty."',
+  },
+];
+
+export type DailyDua = {
+  id: string;
+  title: string;
+  category: 'Morning & Evening' | 'Peace & Forgiveness' | 'Guidance & Knowledge' | 'Protection & Ease';
+  arabic: string;
+  transliteration: string;
+  translation: string;
+  source: string;
+  benefit: string;
+};
+
+export const dailyDuas: DailyDua[] = [
+  {
+    id: 'dua-knowledge',
+    title: 'Seeking Beneficial Knowledge',
+    category: 'Guidance & Knowledge',
+    arabic: 'رَبِّ زِدْنِي عِلْمًا',
+    transliteration: 'Rabbi zidnī ʿilmā',
+    translation: 'My Lord, increase me in knowledge.',
+    source: 'Quran 20:114 (Surah Ta-Ha)',
+    benefit: 'The only increase the Prophet ﷺ was commanded by Allah to pray for.',
+  },
+  {
+    id: 'dua-ease',
+    title: 'Easing Any Difficult Task',
+    category: 'Protection & Ease',
+    arabic: 'اللَّهُمَّ لَا سَهْلَ إِلَّا مَا جَعَلْتَهُ سَهْلًا، وَأَنْتَ تَجْعَلُ الْحَزْنَ إِذَا شِئْتَ سَهْلًا',
+    transliteration: 'Allāhumma lā sahla illā mā jaʿaltahu sahlā, wa-anta tajʿalu al-ḥazna idhā shiʾta sahlā',
+    translation: 'O Allah, there is no ease except that which You make easy, and You make hardship, if You will, into ease.',
+    source: 'Sahih Ibn Hibban #974',
+    benefit: 'Recited before interviews, exams, difficult conversations, or overwhelming responsibilities.',
+  },
+  {
+    id: 'dua-peace',
+    title: 'Relief from Anxiety and Sorrow',
+    category: 'Peace & Forgiveness',
+    arabic: 'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ',
+    transliteration: 'Ḥasbunā Allāhu wa-niʿma al-wakīl',
+    translation: 'Sufficient for us is Allah, and He is the best Disposer of affairs.',
+    source: 'Quran 3:173 (Ali \'Imran)',
+    benefit: 'The prayer uttered by Ibrahim in the fire and Muhammad ﷺ at Hamra al-Asad.',
+  },
+  {
+    id: 'dua-forgiveness',
+    title: 'The Master Supplication for Forgiveness (Sayyid al-Istighfar)',
+    category: 'Peace & Forgiveness',
+    arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ',
+    transliteration: 'Allāhumma anta Rabbī lā ilāha illā ant, khalaqtanī wa-anā ʿabduk, wa-anā ʿalā ʿahdika wa-waʿdika mā-staṭaʿt, aʿūdhu bika min sharri mā ṣanaʿt, abūʾu laka bi-niʿmatika ʿalayya, wa-abūʾu bi-dhanbī faghfir lī fa-innahu lā yaghfiru adh-dhunūba illā ant',
+    translation: 'O Allah, You are my Lord; there is no deity but You. You created me and I am Your servant, and I uphold Your covenant and promise as best I can. I seek refuge in You from the evil of what I have done. I acknowledge Your favors upon me, and I confess my sins, so forgive me, for none forgives sins except You.',
+    source: 'Sahih al-Bukhari #6306',
+    benefit: 'Recited with sincere certainty in morning or evening guarantees entry to Paradise.',
+  },
+  {
+    id: 'dua-morning',
+    title: 'Sanctuary of the Morning & Evening',
+    category: 'Morning & Evening',
+    arabic: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ',
+    transliteration: 'Bismi Allāhi alladhī lā yaḍurru maʿa ismihi shayʾun fī al-arḍi wa-lā fī as-samāʾi wa-huwa as-Samīʿu al-ʿAlīm',
+    translation: 'In the name of Allah, with whose name nothing on earth or in heaven can cause harm, and He is the All-Hearing, the All-Knowing.',
+    source: 'Sunan Abi Dawud #5088 · Tirmidhi #3388',
+    benefit: 'Whoever recites it three times in the morning and evening will not be harmed by anything.',
+  },
+  {
+    id: 'dua-parents',
+    title: 'Tender Prayer for Parents',
+    category: 'Guidance & Knowledge',
+    arabic: 'رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا',
+    transliteration: 'Rabbi irḥamhumā kamā rabbayānī ṣaghīrā',
+    translation: 'My Lord, have mercy upon them as they brought me up when I was small.',
+    source: 'Quran 17:24 (Surah Al-Isra)',
+    benefit: 'Fulfills filial gratitude and brings barakah to family bonds.',
   },
 ];

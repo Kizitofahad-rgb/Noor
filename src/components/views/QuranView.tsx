@@ -29,12 +29,31 @@ export function QuranView({
 
   const activeReciter = reciters.find((r) => r.id === reciterId) || reciters[0];
 
+  const normalizeText = (text: string) =>
+    text
+      .toLowerCase()
+      .replace(/^(al|an|ar|as|ash|at|az|ad)-/i, '')
+      .replace(/[^a-z0-9]/gi, '');
+
   const filteredSurahs = surahs.filter((s) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) {
+      return filterRevelation === 'All' || s.revelation === filterRevelation;
+    }
+
+    const normQ = normalizeText(q);
+    const normName = normalizeText(s.name);
+    const normMeaning = normalizeText(s.meaning);
+
     const matchesSearch =
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.meaning.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.arabic.includes(searchQuery) ||
-      String(s.number).includes(searchQuery);
+      s.name.toLowerCase().includes(q) ||
+      s.meaning.toLowerCase().includes(q) ||
+      s.arabic.includes(q) ||
+      String(s.number) === q ||
+      String(s.number).includes(q) ||
+      (normQ.length > 1 && (normName.includes(normQ) || normMeaning.includes(normQ))) ||
+      s.intro.theme.toLowerCase().includes(q) ||
+      s.intro.overview.toLowerCase().includes(q);
 
     const matchesRev = filterRevelation === 'All' || s.revelation === filterRevelation;
     return matchesSearch && matchesRev;
@@ -61,7 +80,7 @@ export function QuranView({
             The Noble Quran (القرآن الكريم)
           </h1>
           <p className="text-text-secondary text-sm sm:text-base mt-1">
-            Complete chapters with English translations, word-by-word Tajweed, and cited Ibn Kathir tafsir.
+            Complete 114 chapters with Arabic Uthmani text, English translations, recitation audio, and verse-by-verse Tafsir.
           </p>
         </div>
 
@@ -105,6 +124,20 @@ export function QuranView({
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="flex items-center justify-between text-xs text-text-muted px-1">
+        <span>
+          Showing <strong className="text-accent-gold">{filteredSurahs.length}</strong> of {surahs.length} Surahs
+        </span>
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="text-accent-gold hover:underline font-semibold"
+          >
+            Clear Search
+          </button>
+        )}
       </div>
 
       {/* Surah List */}

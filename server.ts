@@ -8,7 +8,7 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { apiRouter } from './src/server/routes.js';
+import { apiRouter } from './src/server/routes.ts';
 
 // ============================================================================
 // CONFIGURATION & FALLBACK KEYS
@@ -404,12 +404,12 @@ async function setupFrontendMiddleware() {
   if (distExists) {
     console.log(`[Production] Serving static files from ${distPath}`);
     app.use(express.static(distPath));
-    app.get('*', (_req: Request, res: Response) => {
+    app.use((_req: Request, res: Response) => {
       res.sendFile(path.resolve(distPath, 'index.html'));
     });
   } else {
     // Graceful fallback if dist folder does not exist yet
-    app.get('*', (_req: Request, res: Response) => {
+    app.use((_req: Request, res: Response) => {
       res.status(200).send(`
         <!DOCTYPE html>
         <html lang="en">
