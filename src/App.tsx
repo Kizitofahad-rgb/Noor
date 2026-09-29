@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NoorProvider } from './context/NoorContext';
 import { AuthProvider } from './context/AuthContext';
 import { Navbar, type TabKey } from './components/Navbar';
@@ -15,21 +15,52 @@ import { ShareNoorModal } from './components/ShareNoorModal';
 import { AudioPlayerBar, type ActiveAudioState } from './components/AudioPlayerBar';
 import { ReciterSelector } from './components/ReciterSelector';
 import { SurahDeepDiveModal } from './components/SurahDeepDiveModal';
+import { ThemeSelectorModal } from './components/ThemeSelectorModal';
+import { useNoor } from './context/NoorContext';
 import type { Surah } from './lib/content';
 
 function NoorApp() {
+  const { appTheme } = useNoor();
   const [activeTab, setActiveTab] = useState<TabKey>('home');
   const [activeAudio, setActiveAudio] = useState<ActiveAudioState | null>(null);
   const [isAudioSettingsOpen, setIsAudioSettingsOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
   const [selectedSurahForDive, setSelectedSurahForDive] = useState<Surah | null>(null);
 
   const handlePlayAudio = (state: ActiveAudioState) => {
     setActiveAudio(state);
   };
 
+  const activeThemeSection =
+    appTheme === 'dynamic'
+      ? activeTab
+      : appTheme === 'emerald'
+      ? 'quran'
+      : appTheme === 'ochre'
+      ? 'stories'
+      : appTheme === 'sapphire'
+      ? 'library'
+      : appTheme === 'jade'
+      ? 'learn'
+      : appTheme === 'amethyst'
+      ? 'reels'
+      : appTheme === 'rosewood'
+      ? 'saved'
+      : appTheme === 'gold'
+      ? 'profile'
+      : appTheme;
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-section', activeThemeSection);
+    document.body.setAttribute('data-section', activeThemeSection);
+  }, [activeThemeSection]);
+
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary flex flex-col font-serif selection:bg-accent-gold/30 selection:text-text-primary pb-20 md:pb-16">
+    <div
+      data-section={activeThemeSection}
+      className="min-h-screen bg-bg-primary text-text-primary flex flex-col font-serif selection:bg-accent-gold/30 selection:text-text-primary pb-20 md:pb-16 transition-colors duration-500"
+    >
       {/* Top Navigation */}
       <Navbar
         activeTab={activeTab}
@@ -39,6 +70,7 @@ function NoorApp() {
         }}
         onOpenAudioSettings={() => setIsAudioSettingsOpen(true)}
         onOpenShareModal={() => setIsShareModalOpen(true)}
+        onOpenThemeModal={() => setIsThemeModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -133,6 +165,12 @@ function NoorApp() {
       <ShareNoorModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
+      />
+
+      {/* Global Theme Selector Modal */}
+      <ThemeSelectorModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
       />
     </div>
   );

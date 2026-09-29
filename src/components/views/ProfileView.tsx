@@ -18,8 +18,10 @@ import {
   Trash2,
   Share2,
   Download,
+  Palette,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useNoor, type AppThemeId } from '@/context/NoorContext';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { OrnamentedCard, BorderedSubPanel, CornerFlourishes } from '../Ornamentation';
 import { surahs, type Surah } from '@/lib/content';
@@ -31,6 +33,7 @@ interface ProfileViewProps {
 }
 
 export function ProfileView({ onOpenSurah, onNavigate, onOpenShareModal }: ProfileViewProps) {
+  const { appTheme, setAppTheme } = useNoor();
   const {
     user,
     logout,
@@ -262,6 +265,68 @@ export function ProfileView({ onOpenSurah, onNavigate, onOpenShareModal }: Profi
               <span>Sign Out</span>
             </button>
           </div>
+        </div>
+      </OrnamentedCard>
+
+      {/* Global Sanctuary Appearance & Theme Card */}
+      <OrnamentedCard className="p-6 sm:p-7 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-accent-gold/25">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-accent-gold/15 text-accent-gold text-xs font-semibold uppercase tracking-wider border border-accent-gold/30 mb-1">
+              <Palette className="w-3.5 h-3.5" />
+              <span>Sanctuary Visual Atmosphere</span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-bold font-serif text-text-primary">
+              Global App Color Theme
+            </h3>
+            <p className="text-xs sm:text-sm text-text-secondary mt-0.5">
+              Choose whether colors dynamically change per section, or lock your favorite sanctuary palette across the entire app.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 pt-1">
+          {[
+            { id: 'dynamic' as const, label: 'Dynamic Aura', sub: 'Adaptive', color: '#E5C365' },
+            { id: 'emerald' as const, label: 'Sacred Emerald', sub: 'Forest Green', color: '#10B981' },
+            { id: 'parchment' as const, label: 'Mushaf Parchment', sub: 'Ivory & Ink', color: '#9E6B15' },
+            { id: 'obsidian' as const, label: 'Night Obsidian', sub: 'OLED Black', color: '#F59E0B' },
+            { id: 'ochre' as const, label: 'Desert Ochre', sub: 'Terracotta', color: '#E08736' },
+            { id: 'sapphire' as const, label: 'Royal Sapphire', sub: 'Midnight Navy', color: '#38BDF8' },
+            { id: 'jade' as const, label: 'Persian Jade', sub: 'Mint Teal', color: '#2DD4BF' },
+            { id: 'amethyst' as const, label: 'Velvet Amethyst', sub: 'Deep Violet', color: '#C084FC' },
+            { id: 'rosewood' as const, label: 'Rosewood Gold', sub: 'Burgundy', color: '#FB7185' },
+            { id: 'gold' as const, label: 'Imperial Gold', sub: 'Burnished Gold', color: '#EAB308' },
+          ].map((theme) => {
+            const isSelected = appTheme === theme.id;
+            return (
+              <button
+                key={theme.id}
+                onClick={() => setAppTheme(theme.id)}
+                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 ${
+                  isSelected
+                    ? 'border-accent-gold bg-accent-gold/20 shadow-xs ring-1 ring-accent-gold'
+                    : 'border-accent-gold/30 bg-bg-primary/60 hover:border-accent-gold/60 hover:bg-bg-primary'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span
+                    className="w-3.5 h-3.5 rounded-full border border-black/40 shadow-xs"
+                    style={{ backgroundColor: theme.color }}
+                  />
+                  {isSelected && <Check className="w-3.5 h-3.5 text-accent-gold" />}
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-text-primary leading-tight">
+                    {theme.label}
+                  </div>
+                  <div className="text-[10px] text-text-muted mt-0.5">
+                    {theme.sub}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </OrnamentedCard>
 

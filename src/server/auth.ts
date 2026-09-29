@@ -47,8 +47,8 @@ export function verifyToken(token: string): AuthUserPayload | null {
 export function setAuthCookie(res: Response, token: string) {
   res.cookie('noor_token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     maxAge: TOKEN_MAX_AGE_DAYS * 24 * 60 * 60 * 1000,
     path: '/',
   });
@@ -57,8 +57,8 @@ export function setAuthCookie(res: Response, token: string) {
 export function clearAuthCookie(res: Response) {
   res.clearCookie('noor_token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     path: '/',
   });
 }

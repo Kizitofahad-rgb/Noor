@@ -50,8 +50,61 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const TOKEN_KEY = 'noor_auth_jwt_token';
+const USER_KEY = 'noor_auth_user_profile';
+
+function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setStoredToken(token: string | null) {
+  try {
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(TOKEN_KEY);
+    }
+  } catch {
+    // Ignore storage issues
+  }
+}
+
+function getStoredUser(): UserProfile | null {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setStoredUser(user: UserProfile | null) {
+  try {
+    if (user) {
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(USER_KEY);
+    }
+  } catch {
+    // Ignore storage issues
+  }
+}
+
+export function getAuthHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+  const token = getStoredToken();
+  const headers: Record<string, string> = { ...extraHeaders };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => getStoredUser());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,15 +118,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkSession = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/auth/me');
+      const token = getStoredToken();
+      const localUser = getStoredUser();
+      if (localUser && !user) {
+        setUser(localUser);
+      }
+
+      const headers = getAuthHeaders();
+      const res = await fetch('/api/auth/me', {
+        headers,
+        credentials: 'include',
+      });
+
       if (res.ok) {
         const data = await res.json();
-        setUser(data.user || null);
-      } else {
-        setUser(null);
+        if (data.user) {
+          setUser(data.user);
+          setStoredUser(data.user);
+        }
+      } else if (res.status === 401) {
+        // Only clear if server explicitly says token is invalid
+        if (!token) {
+          setUser(null);
+          setStoredUser(null);
+        }
       }
     } catch {
-      setUser(null);
+      // Offline fallback: keep cached user
+      const cached = getStoredUser();
+      if (cached) setUser(cached);
     } finally {
       setIsLoading(false);
     }
@@ -89,7 +162,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      const res = await fetch('/api/progress');
+      const res = await fetch('/api/progress', {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
       if (res.ok) {
         const data = await res.json();
         setUserProgress(data.progress || []);
@@ -105,7 +181,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      const res = await fetch('/api/reels/user');
+      const res = await fetch('/api/reels/user', {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
       if (res.ok) {
         const data = await res.json();
         setUserReels(data.reels || []);
@@ -132,16 +211,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to sign in. Please verify your credentials.');
+        setError(data.error || 'Failed to sign in. Please verify your email and password.');
         return false;
       }
 
-      setUser(data.user);
+      if (data.token) {
+        setStoredToken(data.token);
+      }
+      if (data.user) {
+        setUser(data.user);
+        setStoredUser(data.user);
+      }
       setIsAuthModalOpen(false);
       return true;
     } catch {
@@ -156,7 +242,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, displayName }),
+        credentials: 'include',
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+          displayName: displayName.trim(),
+        }),
       });
 
       const data = await res.json();
@@ -165,7 +256,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      setUser(data.user);
+      if (data.token) {
+        setStoredToken(data.token);
+      }
+      if (data.user) {
+        setUser(data.user);
+        setStoredUser(data.user);
+      }
       setIsAuthModalOpen(false);
       return true;
     } catch {
@@ -176,8 +273,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
     } finally {
+      setStoredToken(null);
+      setStoredUser(null);
       setUser(null);
       setUserProgress([]);
       setUserReels([]);
@@ -189,7 +292,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       const res = await fetch('/api/auth/profile', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+        credentials: 'include',
         body: JSON.stringify({ displayName }),
       });
 
@@ -200,6 +304,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setUser(data.user);
+      setStoredUser(data.user);
       return true;
     } catch {
       setError('Failed to update profile.');
@@ -220,7 +325,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch('/api/progress', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+        credentials: 'include',
         body: JSON.stringify({
           surahId: surahId ? String(surahId) : null,
           verseId: verseId ? String(verseId) : null,
@@ -247,7 +353,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch('/api/reels/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+        credentials: 'include',
         body: JSON.stringify({ videoUrl, caption }),
       });
 

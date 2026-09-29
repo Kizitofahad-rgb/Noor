@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { X, Lock, Mail, User, Sparkles, AlertCircle, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
+import {
+  X,
+  Lock,
+  Mail,
+  User,
+  Sparkles,
+  AlertCircle,
+  ArrowRight,
+  Loader2,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  Zap,
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { CornerFlourishes } from './Ornamentation';
 
@@ -21,6 +34,7 @@ export function AuthModal() {
   const [displayName, setDisplayName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     setMode(authModalMode);
@@ -29,6 +43,7 @@ export function AuthModal() {
   useEffect(() => {
     if (isAuthModalOpen) {
       clearError();
+      setValidationError(null);
       setShowPassword(false);
     }
   }, [isAuthModalOpen, mode, clearError]);
@@ -37,22 +52,59 @@ export function AuthModal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setValidationError(null);
 
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setValidationError('Please enter a valid email address.');
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      setValidationError('Password must be at least 6 characters.');
+      return;
+    }
+
+    if (mode === 'signup' && !displayName.trim()) {
+      setValidationError('Please enter your display name.');
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       if (mode === 'signup') {
-        await signup(email, password, displayName);
+        await signup(cleanEmail, password, displayName);
       } else {
-        await login(email, password);
+        await login(cleanEmail, password);
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleQuickDemoLogin = async () => {
+    setIsSubmitting(true);
+    setValidationError(null);
+    clearError();
+    setEmail('test@example.com');
+    setPassword('password123');
+
+    try {
+      const ok = await login('test@example.com', 'password123');
+      if (!ok) {
+        // If demo user wasn't registered yet, register it
+        await signup('test@example.com', 'password123', 'Noor Believer');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const activeError = validationError || error;
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="relative w-full max-w-md bg-bg-card rounded-2xl border border-accent-gold shadow-2xl p-6 sm:p-8 text-text-primary animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-fade-in">
+      <div className="relative w-full max-w-md bg-bg-card rounded-3xl border border-accent-gold shadow-2xl p-6 sm:p-8 text-text-primary animate-in fade-in zoom-in-95 duration-200 my-auto">
         <CornerFlourishes size={16} opacity={0.7} />
 
         {/* Close Button */}
@@ -75,7 +127,7 @@ export function AuthModal() {
             {mode === 'login' ? 'Welcome Back to Noor' : 'Create Your Sacred Profile'}
           </h2>
 
-          <p className="text-sm text-text-secondary leading-relaxed">
+          <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
             {mode === 'login'
               ? 'Sign in to access your recitation journey, track practiced surahs, and view submitted reflections.'
               : 'Join Noor to save personalized Quran recitation milestones, contemplation notes, and faith reels.'}
@@ -83,12 +135,13 @@ export function AuthModal() {
         </div>
 
         {/* Mode Switcher Tabs */}
-        <div className="flex bg-bg-primary p-1 rounded-xl border border-accent-gold/30 mb-6">
+        <div className="flex bg-bg-primary p-1 rounded-xl border border-accent-gold/30 mb-5">
           <button
             type="button"
             onClick={() => {
               setMode('login');
               clearError();
+              setValidationError(null);
             }}
             className={`flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all uppercase tracking-wider ${
               mode === 'login'
@@ -103,6 +156,7 @@ export function AuthModal() {
             onClick={() => {
               setMode('signup');
               clearError();
+              setValidationError(null);
             }}
             className={`flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all uppercase tracking-wider ${
               mode === 'signup'
@@ -115,17 +169,39 @@ export function AuthModal() {
         </div>
 
         {/* Error message callout */}
-        {error && (
-          <div className="mb-5 p-3.5 rounded-xl bg-rose-950/70 border border-rose-600/50 text-rose-200 text-xs sm:text-sm flex items-start gap-2.5 animate-in fade-in">
+        {activeError && (
+          <div className="mb-4 p-3.5 rounded-xl bg-rose-950/70 border border-rose-600/50 text-rose-200 text-xs sm:text-sm flex items-start gap-2.5 animate-in fade-in">
             <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-            <span>{error}</span>
+            <span className="leading-snug">{activeError}</span>
           </div>
         )}
 
+        {/* Quick 1-Click Demo Login */}
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={handleQuickDemoLogin}
+            disabled={isSubmitting}
+            className="w-full py-2.5 px-4 rounded-xl border border-accent-gold/45 bg-accent-gold/10 hover:bg-accent-gold/20 text-accent-gold text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs"
+          >
+            <Zap className="w-4 h-4 text-accent-gold" />
+            <span>1-Click Quick Demo Sign In</span>
+          </button>
+        </div>
+
+        <div className="relative my-4 text-center">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-accent-gold/20" />
+          </div>
+          <span className="relative px-3 bg-bg-card text-[11px] uppercase tracking-wider text-text-muted">
+            or enter your credentials
+          </span>
+        </div>
+
         {/* Authentication Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           {mode === 'signup' && (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label className="text-xs font-semibold uppercase tracking-wider text-accent-gold flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5" />
                 <span>Display Name</span>
@@ -134,14 +210,18 @@ export function AuthModal() {
                 type="text"
                 required
                 value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
+                onChange={(e) => {
+                  setDisplayName(e.target.value);
+                  setValidationError(null);
+                  clearError();
+                }}
                 placeholder="e.g. Tariq, Maryam"
                 className="w-full bg-bg-primary border border-accent-gold/40 rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-gold"
               />
             </div>
           )}
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-wider text-accent-gold flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5" />
               <span>Email Address</span>
@@ -150,13 +230,17 @@ export function AuthModal() {
               type="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setValidationError(null);
+                clearError();
+              }}
               placeholder="you@domain.com"
               className="w-full bg-bg-primary border border-accent-gold/40 rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-gold"
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-wider text-accent-gold flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5" />
               <span>Password</span>
@@ -167,7 +251,11 @@ export function AuthModal() {
                 required
                 minLength={6}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setValidationError(null);
+                  clearError();
+                }}
                 placeholder="Minimum 6 characters"
                 className="w-full bg-bg-primary border border-accent-gold/40 rounded-xl pl-4 pr-11 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-gold"
               />
@@ -212,7 +300,7 @@ export function AuthModal() {
         </form>
 
         {/* Subtext Switcher */}
-        <div className="mt-6 pt-4 border-t border-accent-gold/20 text-center text-xs text-text-secondary">
+        <div className="mt-5 pt-3 border-t border-accent-gold/20 text-center text-xs text-text-secondary">
           {mode === 'login' ? (
             <span>
               Don't have an account yet?{' '}
@@ -221,10 +309,11 @@ export function AuthModal() {
                 onClick={() => {
                   setMode('signup');
                   clearError();
+                  setValidationError(null);
                 }}
-                className="text-accent-gold font-semibold hover:underline"
+                className="text-accent-gold font-bold hover:underline ml-1"
               >
-                Create one now &rarr;
+                Create one now
               </button>
             </span>
           ) : (
@@ -235,10 +324,11 @@ export function AuthModal() {
                 onClick={() => {
                   setMode('login');
                   clearError();
+                  setValidationError(null);
                 }}
-                className="text-accent-gold font-semibold hover:underline"
+                className="text-accent-gold font-bold hover:underline ml-1"
               >
-                Sign in &rarr;
+                Sign in here
               </button>
             </span>
           )}

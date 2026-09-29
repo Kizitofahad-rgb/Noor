@@ -540,7 +540,7 @@ export function PrayerTimesWidget() {
 
       {/* Main Countdown Hero Highlight */}
       {prayerSchedule && (
-        <div className="relative overflow-hidden rounded-xl border border-accent-gold/50 bg-gradient-to-br from-[#122A1F] via-[#10241A] to-[#0A1711] p-5 sm:p-7 shadow-lg">
+        <div className="relative overflow-hidden rounded-xl border border-accent-gold/50 bg-gradient-to-br from-bg-card via-bg-card/90 to-bg-primary p-5 sm:p-7 shadow-lg">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
             {/* Left Column: Next Prayer Name & Arabic */}
             <div className="space-y-2">

@@ -31,7 +31,24 @@ export function StoriesView({ onOpenSurah, onNavigate, onOpenShareModal }: Stori
   const [storyCategory, setStoryCategory] = useState<'All' | 'Early' | 'Patriarchs' | 'Kings & Sages' | 'Seal'>('All');
   const [activeSectionId, setActiveSectionId] = useState<string | undefined>(undefined);
 
+  const storyDetailRef = useRef<HTMLDivElement>(null);
+
   const activeStory = prophetStories.find((s) => s.id === selectedStoryId) || prophetStories[0];
+
+  const handleSelectStory = (storyId: string) => {
+    setSelectedStoryId(storyId);
+    setActiveSectionId(undefined);
+    // Smoothly scroll the story into view so the user can easily read
+    setTimeout(() => {
+      if (storyDetailRef.current) {
+        const topOffset = storyDetailRef.current.getBoundingClientRect().top + window.pageYOffset - 75;
+        window.scrollTo({
+          top: Math.max(0, topOffset),
+          behavior: 'smooth',
+        });
+      }
+    }, 50);
+  };
 
   // Category filter
   const categorizedStories = prophetStories.filter((s) => {
@@ -164,14 +181,10 @@ export function StoriesView({ onOpenSurah, onNavigate, onOpenShareModal }: Stori
             return (
               <button
                 key={story.id}
-                onClick={() => {
-                  setSelectedStoryId(story.id);
-                  setActiveSectionId(undefined);
-                  window.scrollTo({ top: 120, behavior: 'smooth' });
-                }}
-                className={`p-3.5 sm:p-4 rounded-2xl text-left transition-all border relative flex flex-col justify-between overflow-hidden group ${
+                onClick={() => handleSelectStory(story.id)}
+                className={`p-3.5 sm:p-4 rounded-2xl text-left transition-all border relative flex flex-col justify-between overflow-hidden group cursor-pointer ${
                   isSelected
-                    ? 'bg-accent-gold/20 border-accent-gold text-accent-gold shadow-md'
+                    ? 'bg-accent-gold/20 border-accent-gold text-accent-gold shadow-md ring-1 ring-accent-gold'
                     : 'bg-bg-card hover:bg-bg-primary/90 border-accent-gold/30 hover:border-accent-gold/70 text-text-primary'
                 }`}
               >
@@ -193,7 +206,7 @@ export function StoriesView({ onOpenSurah, onNavigate, onOpenShareModal }: Stori
                 </div>
 
                 <div className="pt-2 mt-2 border-t border-accent-gold/20 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-accent-gold">
-                  <span>{isSelected ? 'Active Story ✓' : 'Explore'}</span>
+                  <span>{isSelected ? 'Reading Now ↑' : 'Read Story'}</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </div>
               </button>
@@ -205,7 +218,11 @@ export function StoriesView({ onOpenSurah, onNavigate, onOpenShareModal }: Stori
       {/* ========================================================================= */}
       {/* 1. HEADER IMAGE / VISUAL ILLUSTRATION BANNER */}
       {/* ========================================================================= */}
-      <div className="relative rounded-3xl overflow-hidden border-2 border-accent-gold/60 shadow-2xl p-6 sm:p-10 text-text-primary bg-radial from-[#1A382B] via-[#0E231B] to-[#081711]">
+      <div
+        ref={storyDetailRef}
+        id="story-detail-section"
+        className="relative rounded-3xl overflow-hidden border-2 border-accent-gold/50 shadow-2xl p-6 sm:p-10 text-text-primary bg-gradient-to-br from-bg-card via-bg-card/95 to-bg-primary transition-colors duration-300"
+      >
         <CornerFlourishes size={24} opacity={0.8} />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">

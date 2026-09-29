@@ -1,25 +1,145 @@
 @import "tailwindcss";
 
 :root {
-  --bg-primary: #0E1F17;
-  --bg-card: #122A1F;
-  --accent-gold: #C9A55C;
-  --accent-gold-dim: #B08D4F;
-  --accent-gold-glow: rgba(201, 165, 92, 0.25);
+  --bg-primary: #0A1715;
+  --bg-card: #102421;
+  --accent-gold: #D4AF37;
+  --accent-gold-dim: #B8972E;
+  --accent-gold-glow: rgba(212, 175, 55, 0.25);
   --text-primary: #F9F4EB;
   --text-secondary: #E3D9C5;
-  --text-muted: #C0B49E;
+  --text-muted: #A39680;
+}
+
+/* 1. Today / Home: Twilight Spruce & Warm Dawn Amber */
+[data-section="home"] {
+  --bg-primary: #081615;
+  --bg-card: #0E2421;
+  --accent-gold: #F59E0B;
+  --accent-gold-dim: #D97706;
+  --accent-gold-glow: rgba(245, 158, 11, 0.25);
+  --text-primary: #FAF7F0;
+  --text-secondary: #E5DFCE;
+  --text-muted: #AAA08B;
+}
+
+/* 2. Quran: Sacred Deep Emerald & Radiant Pure Gold */
+[data-section="quran"] {
+  --bg-primary: #031710;
+  --bg-card: #08291D;
+  --accent-gold: #E5C365;
+  --accent-gold-dim: #C9A54C;
+  --accent-gold-glow: rgba(229, 195, 101, 0.28);
+  --text-primary: #FCF9F2;
+  --text-secondary: #E5DECD;
+  --text-muted: #AAA18E;
+}
+
+/* 3. Stories: Ancient Desert Ochre & Terracotta Sandstone */
+[data-section="stories"] {
+  --bg-primary: #170E08;
+  --bg-card: #27180E;
+  --accent-gold: #E08736;
+  --accent-gold-dim: #C26F25;
+  --accent-gold-glow: rgba(224, 135, 54, 0.28);
+  --text-primary: #FDF7F0;
+  --text-secondary: #E8D8C8;
+  --text-muted: #B8A290;
+}
+
+/* 4. Library: Royal Lapis Lazuli & Illuminated Sapphire */
+[data-section="library"] {
+  --bg-primary: #060E1C;
+  --bg-card: #0E1E3B;
+  --accent-gold: #38BDF8;
+  --accent-gold-dim: #0284C7;
+  --accent-gold-glow: rgba(56, 189, 248, 0.28);
+  --text-primary: #F0F6FC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+}
+
+/* 5. Reels: Velvet Obsidian & Radiant Amethyst */
+[data-section="reels"] {
+  --bg-primary: #0E0617;
+  --bg-card: #1F0D30;
+  --accent-gold: #C084FC;
+  --accent-gold-dim: #A855F7;
+  --accent-gold-glow: rgba(192, 132, 252, 0.28);
+  --text-primary: #FAF5FF;
+  --text-secondary: #E9D5FF;
+  --text-muted: #B388EB;
+}
+
+/* 6. Learn: Persian Jade & Vivid Mint Teal */
+[data-section="learn"] {
+  --bg-primary: #031716;
+  --bg-card: #082B29;
+  --accent-gold: #2DD4BF;
+  --accent-gold-dim: #14B8A6;
+  --accent-gold-glow: rgba(45, 212, 191, 0.28);
+  --text-primary: #F0FDF4;
+  --text-secondary: #CCFBF1;
+  --text-muted: #5EEAD4;
+}
+
+/* 7. Saved: Antique Rosewood & Warm Crimson Gold */
+[data-section="saved"] {
+  --bg-primary: #17070B;
+  --bg-card: #2B0E16;
+  --accent-gold: #FB7185;
+  --accent-gold-dim: #F43F5E;
+  --accent-gold-glow: rgba(251, 113, 133, 0.28);
+  --text-primary: #FFF1F2;
+  --text-secondary: #FFE4E6;
+  --text-muted: #FDA4AF;
+}
+
+/* 8. Profile: Burnished Charcoal & Imperial Gold */
+[data-section="profile"] {
+  --bg-primary: #121008;
+  --bg-card: #231E10;
+  --accent-gold: #F59E0B;
+  --accent-gold-dim: #D97706;
+  --accent-gold-glow: rgba(245, 158, 11, 0.28);
+  --text-primary: #FEFCE8;
+  --text-secondary: #FEF08A;
+  --text-muted: #FCD34D;
+}
+
+/* 9. Classical Mushaf Parchment Theme */
+[data-section="parchment"] {
+  --bg-primary: #F8F4E8;
+  --bg-card: #EDE5D2;
+  --accent-gold: #9E6B15;
+  --accent-gold-dim: #7E540D;
+  --accent-gold-glow: rgba(158, 107, 21, 0.25);
+  --text-primary: #1E160D;
+  --text-secondary: #4E3C27;
+  --text-muted: #7E6548;
+}
+
+/* 10. Night Obsidian True OLED Dark Theme */
+[data-section="obsidian"] {
+  --bg-primary: #000000;
+  --bg-card: #0D0D0D;
+  --accent-gold: #F59E0B;
+  --accent-gold-dim: #D97706;
+  --accent-gold-glow: rgba(245, 158, 11, 0.35);
+  --text-primary: #F9FAFB;
+  --text-secondary: #D1D5DB;
+  --text-muted: #9CA3AF;
 }
 
 @theme {
-  --color-bg-primary: #0E1F17;
-  --color-bg-card: #122A1F;
-  --color-accent-gold: #C9A55C;
-  --color-accent-gold-dim: #B08D4F;
-  --color-accent-gold-glow: rgba(201, 165, 92, 0.25);
-  --color-text-primary: #F9F4EB;
-  --color-text-secondary: #E3D9C5;
-  --color-text-muted: #C0B49E;
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-card: var(--bg-card);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-gold-dim: var(--accent-gold-dim);
+  --color-accent-gold-glow: var(--accent-gold-glow);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
 
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;

@@ -40,13 +40,47 @@ export function AudioPlayerBar({
 
     if (!audioRef.current) {
       audioRef.current = new Audio();
+      audioRef.current.setAttribute('playsinline', 'true');
     }
 
     const audio = audioRef.current;
+    audio.setAttribute('playsinline', 'true');
     audio.src = audioState.url;
     audio.playbackRate = audioRate;
     setLoading(true);
     setIsPlaying(true);
+
+    // Register MediaSession for phone background and lock screen audio
+    if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: audioState.title,
+          artist: `${audioState.subtitle} · Qari ${activeReciter.name}`,
+          album: 'The Noble Quran · Noor',
+          artwork: [
+            { src: '/icon.svg', sizes: '192x192', type: 'image/svg+xml' },
+            { src: '/public/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          ],
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => {
+          audio.play().catch(() => {});
+          setIsPlaying(true);
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+          audio.pause();
+          setIsPlaying(false);
+        });
+        navigator.mediaSession.setActionHandler('seekbackward', () => {
+          audio.currentTime = Math.max(0, audio.currentTime - 10);
+        });
+        navigator.mediaSession.setActionHandler('seekforward', () => {
+          audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10);
+        });
+      } catch (e) {
+        // MediaSession optional
+      }
+    }
 
     const onCanPlay = () => {
       setLoading(false);

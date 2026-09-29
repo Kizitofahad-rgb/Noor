@@ -76,11 +76,15 @@ export function QuranView({
       {/* Title & Reciter Info Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2">
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Full-Screen Immersive Reading & Tilawah Sanctuary</span>
+          </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary tracking-tight font-serif">
             The Noble Quran (القرآن الكريم)
           </h1>
           <p className="text-text-secondary text-sm sm:text-base mt-1">
-            Complete 114 chapters with Arabic Uthmani text, English translations, recitation audio, and verse-by-verse Tafsir.
+            Complete 114 chapters with Arabic Uthmani text, continuous Mushaf Tilawah, English translations, recitation audio, and verse-by-verse Tafsir.
           </p>
         </div>
 
@@ -94,6 +98,37 @@ export function QuranView({
             <div className="truncate max-w-[160px] text-text-primary font-bold text-sm">{activeReciter.name}</div>
           </div>
         </button>
+      </div>
+
+      {/* Full Screen Reading Highlight Banner */}
+      <div className="relative rounded-2xl bg-gradient-to-r from-emerald-950/70 via-bg-card to-emerald-950/70 border border-emerald-500/40 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-xl bg-emerald-900/50 border border-emerald-400/50 text-emerald-300 flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
+            📖
+          </div>
+          <div>
+            <div className="text-xs font-bold uppercase tracking-wider text-emerald-300">
+              Immersive Full-Screen Sanctuary Active
+            </div>
+            <p className="text-xs sm:text-sm text-text-secondary mt-0.5">
+              Select any chapter below to enter distraction-free full-screen reading with Zen Focus, auto-collapsing headers, and parchment themes.
+            </p>
+          </div>
+        </div>
+
+        {readSurahs.length > 0 && (
+          <button
+            onClick={() => {
+              const lastId = readSurahs[readSurahs.length - 1];
+              const lastSurah = surahs.find((s) => s.id === lastId);
+              if (lastSurah) onOpenSurah(lastSurah);
+            }}
+            className="px-4 py-2 rounded-xl bg-accent-gold text-bg-primary font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-accent-gold-dim transition-transform active:scale-95 shadow-xs shrink-0"
+          >
+            <span>Resume Reading</span>
+            <BookOpen className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {/* Search & Revelation Filter */}

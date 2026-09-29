@@ -2,6 +2,18 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import type { MoodId, ReelItem } from '@/lib/content';
 import { initialReels } from '@/lib/content';
 
+export type AppThemeId =
+  | 'dynamic'
+  | 'emerald'
+  | 'parchment'
+  | 'obsidian'
+  | 'ochre'
+  | 'sapphire'
+  | 'jade'
+  | 'amethyst'
+  | 'rosewood'
+  | 'gold';
+
 export type UserReflection = {
   id: string;
   mood: MoodId;
@@ -13,6 +25,8 @@ export type UserReflection = {
 type NoorContextType = {
   mood: MoodId;
   setMood: (mood: MoodId) => void;
+  appTheme: AppThemeId;
+  setAppTheme: (theme: AppThemeId) => void;
   savedItems: string[];
   toggleSaved: (id: string) => void;
   isSaved: (id: string) => boolean;
@@ -57,6 +71,24 @@ const OBSOLETE_PLACEHOLDER_IDS = new Set([
 
 export function NoorProvider({ children }: { children: React.ReactNode }) {
   const [mood, setMood] = useState<MoodId>('anxious');
+
+  const [appTheme, setAppThemeState] = useState<AppThemeId>(() => {
+    try {
+      const stored = localStorage.getItem(`${STORAGE_PREFIX}theme`) as AppThemeId;
+      return stored || 'dynamic';
+    } catch {
+      return 'dynamic';
+    }
+  });
+
+  const setAppTheme = useCallback((newTheme: AppThemeId) => {
+    setAppThemeState(newTheme);
+    try {
+      localStorage.setItem(`${STORAGE_PREFIX}theme`, newTheme);
+    } catch {
+      // Ignore storage error
+    }
+  }, []);
 
   const [savedItems, setSavedItems] = useState<string[]>(() => {
     try {
@@ -289,6 +321,8 @@ export function NoorProvider({ children }: { children: React.ReactNode }) {
       value={{
         mood,
         setMood,
+        appTheme,
+        setAppTheme,
         savedItems,
         toggleSaved,
         isSaved,
