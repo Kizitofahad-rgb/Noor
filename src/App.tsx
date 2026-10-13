@@ -16,17 +16,29 @@ import { AudioPlayerBar, type ActiveAudioState } from './components/AudioPlayerB
 import { ReciterSelector } from './components/ReciterSelector';
 import { SurahDeepDiveModal } from './components/SurahDeepDiveModal';
 import { ThemeSelectorModal } from './components/ThemeSelectorModal';
+import { NotificationSettingsModal } from './components/NotificationSettingsModal';
 import { useNoor } from './context/NoorContext';
+import { NotificationProvider, useNotifications } from './context/NotificationContext';
+import { startDevotionalScheduler, stopDevotionalScheduler } from './lib/devotionalScheduler';
 import type { Surah } from './lib/content';
 
 function NoorApp() {
   const { appTheme } = useNoor();
+  const { openModal: openNotificationModal } = useNotifications();
   const [activeTab, setActiveTab] = useState<TabKey>('home');
   const [activeAudio, setActiveAudio] = useState<ActiveAudioState | null>(null);
   const [isAudioSettingsOpen, setIsAudioSettingsOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
   const [selectedSurahForDive, setSelectedSurahForDive] = useState<Surah | null>(null);
+
+  // Start background prayer and devotional notifications scheduler
+  useEffect(() => {
+    startDevotionalScheduler();
+    return () => {
+      stopDevotionalScheduler();
+    };
+  }, []);
 
   const handlePlayAudio = (state: ActiveAudioState) => {
     setActiveAudio(state);
@@ -71,6 +83,7 @@ function NoorApp() {
         onOpenAudioSettings={() => setIsAudioSettingsOpen(true)}
         onOpenShareModal={() => setIsShareModalOpen(true)}
         onOpenThemeModal={() => setIsThemeModalOpen(true)}
+        onOpenNotificationModal={openNotificationModal}
       />
 
       {/* Main Content Area */}
@@ -109,7 +122,7 @@ function NoorApp() {
 
         {activeTab === 'reels' && <ReelsView />}
 
-        {activeTab === 'learn' && <LearnView />}
+        {activeTab === 'learn' && <LibraryView initialSection="arabic" />}
 
         {activeTab === 'saved' && (
           <SavedView
@@ -172,6 +185,9 @@ function NoorApp() {
         isOpen={isThemeModalOpen}
         onClose={() => setIsThemeModalOpen(false)}
       />
+
+      {/* Phone Push Notifications Modal */}
+      <NotificationSettingsModal />
     </div>
   );
 }
@@ -180,7 +196,9 @@ export default function App() {
   return (
     <AuthProvider>
       <NoorProvider>
-        <NoorApp />
+        <NotificationProvider>
+          <NoorApp />
+        </NotificationProvider>
       </NoorProvider>
     </AuthProvider>
   );

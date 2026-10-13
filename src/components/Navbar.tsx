@@ -12,9 +12,11 @@ import {
   Share2,
   Scroll,
   Palette,
+  Bell,
 } from 'lucide-react';
 import { useNoor } from '@/context/NoorContext';
 import { useAuth } from '@/context/AuthContext';
+import { useNotifications } from '@/context/NotificationContext';
 
 export type TabKey = 'home' | 'quran' | 'stories' | 'library' | 'reels' | 'learn' | 'saved' | 'profile';
 
@@ -50,8 +52,8 @@ const sectionTabColorMeta: Record<TabKey, {
     activePill: 'bg-sky-500/20 text-sky-300 border-sky-400/50 shadow-xs shadow-sky-500/10',
     activeIcon: 'text-sky-400',
     badge: 'border-sky-500/40 text-sky-400 bg-sky-500/10',
-    arabicLabel: 'مكتبة الحديث والتفسير',
-    sub: 'Scholarly Library',
+    arabicLabel: 'المكتبة واللغة',
+    sub: 'Library & Arabic',
   },
   reels: {
     activePill: 'bg-purple-500/20 text-purple-300 border-purple-400/50 shadow-xs shadow-purple-500/10',
@@ -89,15 +91,18 @@ export function Navbar({
   onOpenAudioSettings,
   onOpenShareModal,
   onOpenThemeModal,
+  onOpenNotificationModal,
 }: {
   activeTab: TabKey;
   onSelectTab: (tab: TabKey) => void;
   onOpenAudioSettings: () => void;
   onOpenShareModal?: () => void;
   onOpenThemeModal?: () => void;
+  onOpenNotificationModal?: () => void;
 }) {
   const { savedItems } = useNoor();
   const { user, openAuthModal } = useAuth();
+  const { isSubscribed, permission } = useNotifications();
 
   const currentMeta = sectionTabColorMeta[activeTab];
 
@@ -107,7 +112,6 @@ export function Navbar({
     { key: 'stories', label: 'Stories', icon: <Scroll className="w-4 h-4" /> },
     { key: 'library', label: 'Library', icon: <Compass className="w-4 h-4" /> },
     { key: 'reels', label: 'Reels', icon: <Film className="w-4 h-4" /> },
-    { key: 'learn', label: 'Arabic', icon: <Sparkles className="w-4 h-4" /> },
     { key: 'saved', label: 'Saved', icon: <Bookmark className="w-4 h-4" /> },
     { key: 'profile', label: 'Profile', icon: <User className="w-4 h-4" /> },
   ];
@@ -171,6 +175,22 @@ export function Navbar({
 
           {/* Quick Action Badges */}
           <div className="flex items-center gap-2">
+            {onOpenNotificationModal && (
+              <button
+                onClick={onOpenNotificationModal}
+                title="Phone notifications & prayer alerts"
+                className="relative px-3 py-2 text-text-primary hover:text-accent-gold rounded-xl transition-colors flex items-center gap-1.5 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold"
+              >
+                <div className="relative">
+                  <Bell className="w-4 h-4 text-accent-gold" />
+                  {isSubscribed && permission === 'granted' && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-bg-card animate-pulse" />
+                  )}
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wider hidden xl:inline">Alerts</span>
+              </button>
+            )}
+
             {onOpenThemeModal && (
               <button
                 onClick={onOpenThemeModal}

@@ -25,6 +25,7 @@ export function AudioPlayerBar({
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const activeReciter = reciters.find((r) => r.id === reciterId) || reciters[0];
@@ -44,11 +45,11 @@ export function AudioPlayerBar({
     }
 
     const audio = audioRef.current;
-    audio.setAttribute('playsinline', 'true');
     audio.src = audioState.url;
     audio.playbackRate = audioRate;
     setLoading(true);
     setIsPlaying(true);
+    setHasError(false);
 
     // Register MediaSession for phone background and lock screen audio
     if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
@@ -59,7 +60,7 @@ export function AudioPlayerBar({
           album: 'The Noble Quran · Noor',
           artwork: [
             { src: '/icon.svg', sizes: '192x192', type: 'image/svg+xml' },
-            { src: '/public/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+            { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
           ],
         });
 
@@ -103,6 +104,7 @@ export function AudioPlayerBar({
     const onError = () => {
       setLoading(false);
       setIsPlaying(false);
+      setHasError(true);
     };
 
     audio.addEventListener('canplay', onCanPlay);
@@ -194,7 +196,13 @@ export function AudioPlayerBar({
               )}
             </div>
             <div className="text-sm text-text-secondary truncate mt-0.5">
-              {audioState.subtitle} · <span className="text-accent-gold font-semibold">{activeReciter.name}</span>
+              {hasError ? (
+                <span className="text-amber-400 font-semibold">Audio not cached for offline · Reconnect to play</span>
+              ) : (
+                <>
+                  {audioState.subtitle} · <span className="text-accent-gold font-semibold">{activeReciter.name}</span>
+                </>
+              )}
             </div>
           </div>
         </div>

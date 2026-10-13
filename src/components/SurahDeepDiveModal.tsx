@@ -19,6 +19,8 @@ import {
   Palette,
   Volume2,
   RotateCcw,
+  Download,
+  WifiOff,
 } from 'lucide-react';
 import type { Surah } from '@/lib/content';
 import { verses } from '@/lib/content';
@@ -27,6 +29,7 @@ import { getVerseAudioUrl, getSurahAudioUrl } from '@/lib/recitationAudio';
 import { fetchSurahFromAlQuranCloud, type RemoteAyah } from '@/lib/quranApi';
 import { useNoor } from '@/context/NoorContext';
 import { useAuth } from '@/context/AuthContext';
+import { useOfflineStatus } from '@/hooks/useOfflineStatus';
 import type { ActiveAudioState } from './AudioPlayerBar';
 import { CornerFlourishes, BorderedSubPanel } from './Ornamentation';
 
@@ -45,6 +48,8 @@ export function SurahDeepDiveModal({
 }) {
   const { savedItems, toggleSaved, markSurahRead, reciterId } = useNoor();
   const { user, saveProgress, userProgress, openAuthModal, refreshProgress } = useAuth();
+  const { isOnline, isCached, cacheSurah, isCaching } = useOfflineStatus();
+  const isSurahOffline = isCached(surah.number);
 
   // Reading Experience States
   const [activeTab, setActiveTab] = useState<'study' | 'overview'>('study');
@@ -547,6 +552,34 @@ export function SurahDeepDiveModal({
                   />
                 </div>
 
+                {/* Offline Caching Status / Action */}
+                {isSurahOffline ? (
+                  <div
+                    title="Available offline without internet connection"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border ${currentTheme.subpanelBg} ${currentTheme.border} text-emerald-400`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Offline Ready</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => cacheSurah(surah.number)}
+                    disabled={isCaching === surah.number}
+                    title="Cache this complete Surah for offline reading"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${currentTheme.subpanelBg} ${currentTheme.border} ${currentTheme.accent} hover:opacity-100`}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>{isCaching === surah.number ? 'Caching...' : 'Save Offline'}</span>
+                  </button>
+                )}
+
+                {!isOnline && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold uppercase tracking-wider">
+                    <WifiOff className="w-3.5 h-3.5" />
+                    <span className="hidden md:inline">Offline</span>
+                  </span>
+                )}
+
                 {/* Practice Progress */}
                 <button
                   onClick={handleMarkSurahPracticed}
@@ -974,14 +1007,26 @@ export function SurahDeepDiveModal({
               ) : (
                 /* Fallback State */
                 <div className={`text-center py-16 rounded-3xl border p-8 ${currentTheme.cardBg} ${currentTheme.border}`}>
-                  <BookOpen className={`w-12 h-12 mx-auto mb-3 opacity-50 ${currentTheme.accent}`} />
-                  <h4 className="font-bold text-lg">Audio Recitation Ready</h4>
-                  <p className={`text-sm mt-1 max-w-md mx-auto ${currentTheme.textSecondary}`}>
-                    Click "Play Full Surah" to listen to complete recitation by {reciterId}.
-                  </p>
+                  {!isOnline ? (
+                    <>
+                      <WifiOff className={`w-12 h-12 mx-auto mb-3 opacity-60 ${currentTheme.accent}`} />
+                      <h4 className="font-bold text-lg">Surah Not Yet Cached Offline</h4>
+                      <p className={`text-sm mt-1 max-w-md mx-auto leading-relaxed ${currentTheme.textSecondary}`}>
+                        Surah #{surah.number} ({surah.name}) hasn't been opened on this device yet. Connect to the internet once to save its verses for offline reading, or listen to audio recitation.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <BookOpen className={`w-12 h-12 mx-auto mb-3 opacity-50 ${currentTheme.accent}`} />
+                      <h4 className="font-bold text-lg">Audio Recitation Ready</h4>
+                      <p className={`text-sm mt-1 max-w-md mx-auto ${currentTheme.textSecondary}`}>
+                        Click "Play Full Surah" to listen to complete recitation by {reciterId}.
+                      </p>
+                    </>
+                  )}
                   <button
                     onClick={playFullSurah}
-                    className="mt-4 px-6 py-2.5 bg-accent-gold text-bg-primary font-bold text-sm rounded-xl uppercase tracking-wider"
+                    className="mt-4 px-6 py-2.5 bg-accent-gold text-bg-primary font-bold text-sm rounded-xl uppercase tracking-wider transition-transform active:scale-95 shadow-xs"
                   >
                     Play Full Chapter ({surah.time})
                   </button>

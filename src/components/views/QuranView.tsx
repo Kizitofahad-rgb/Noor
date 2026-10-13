@@ -7,10 +7,14 @@ import {
   Volume2,
   Bookmark,
   BookmarkCheck,
+  Download,
+  WifiOff,
 } from 'lucide-react';
 import { surahs, type Surah } from '@/lib/content';
 import { reciters, getSurahAudioUrl } from '@/lib/recitationAudio';
 import { useNoor } from '@/context/NoorContext';
+import { useOfflineStatus } from '@/hooks/useOfflineStatus';
+import { OfflineSanctuaryBanner } from '../OfflineSanctuaryBanner';
 import type { ActiveAudioState } from '../AudioPlayerBar';
 import { OrnamentedCard, BorderedSubPanel } from '../Ornamentation';
 
@@ -24,8 +28,9 @@ export function QuranView({
   onOpenAudioSettings: () => void;
 }) {
   const { readSurahs, markSurahRead, reciterId, savedItems, toggleSaved } = useNoor();
+  const { isOnline, isCached, cacheSurah, isCaching, cachedCount } = useOfflineStatus();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterRevelation, setFilterRevelation] = useState<'All' | 'Meccan' | 'Medinan'>('All');
+  const [filterRevelation, setFilterRevelation] = useState<'All' | 'Meccan' | 'Medinan' | 'Offline Ready'>('All');
 
   const activeReciter = reciters.find((r) => r.id === reciterId) || reciters[0];
 
@@ -36,9 +41,18 @@ export function QuranView({
       .replace(/[^a-z0-9]/gi, '');
 
   const filteredSurahs = surahs.filter((s) => {
+    // If filter is Offline Ready, only return cached surahs
+    if (filterRevelation === 'Offline Ready' && !isCached(s.number)) {
+      return false;
+    }
+
     const q = searchQuery.trim().toLowerCase();
     if (!q) {
-      return filterRevelation === 'All' || s.revelation === filterRevelation;
+      return (
+        filterRevelation === 'All' ||
+        filterRevelation === 'Offline Ready' ||
+        s.revelation === filterRevelation
+      );
     }
 
     const normQ = normalizeText(q);
@@ -55,7 +69,10 @@ export function QuranView({
       s.intro.theme.toLowerCase().includes(q) ||
       s.intro.overview.toLowerCase().includes(q);
 
-    const matchesRev = filterRevelation === 'All' || s.revelation === filterRevelation;
+    const matchesRev =
+      filterRevelation === 'All' ||
+      filterRevelation === 'Offline Ready' ||
+      s.revelation === filterRevelation;
     return matchesSearch && matchesRev;
   });
 
@@ -107,11 +124,14 @@ export function QuranView({
             📖
           </div>
           <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-emerald-300">
-              Immersive Full-Screen Sanctuary Active
+            <div className="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-2">
+              <span>Immersive Full-Screen Sanctuary Active</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                {cachedCount} Cached Offline
+              </span>
             </div>
             <p className="text-xs sm:text-sm text-text-secondary mt-0.5">
-              Select any chapter below to enter distraction-free full-screen reading with Zen Focus, auto-collapsing headers, and parchment themes.
+              Select any chapter below to enter distraction-free full-screen reading. Chapters you read are automatically preserved for offline access.
             </p>
           </div>
         </div>
@@ -131,6 +151,14 @@ export function QuranView({
         )}
       </div>
 
+      {/* Offline Sanctuary Alert Banner (shown when offline) */}
+      <OfflineSanctuaryBanner
+        onOpenSurahById={(num) => {
+          const s = surahs.find((x) => x.number === num);
+          if (s) onOpenSurah(s);
+        }}
+      />
+
       {/* Search & Revelation Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -144,18 +172,18 @@ export function QuranView({
           />
         </div>
 
-        <div className="flex items-center gap-1.5 bg-bg-card/90 border border-accent-gold/35 p-1.5 rounded-2xl shrink-0 self-start sm:self-auto">
-          {(['All', 'Meccan', 'Medinan'] as const).map((tab) => (
+        <div className="flex items-center gap-1.5 bg-bg-card/90 border border-accent-gold/35 p-1.5 rounded-2xl shrink-0 self-start sm:self-auto overflow-x-auto max-w-full">
+          {(['All', 'Meccan', 'Medinan', 'Offline Ready'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setFilterRevelation(tab)}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all uppercase tracking-wider ${
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all uppercase tracking-wider whitespace-nowrap ${
                 filterRevelation === tab
                   ? 'bg-accent-gold/25 text-accent-gold border border-accent-gold/60 shadow-xs'
                   : 'text-text-secondary hover:text-text-primary'
               }`}
             >
-              {tab}
+              {tab === 'Offline Ready' ? `Offline (${cachedCount})` : tab}
             </button>
           ))}
         </div>
@@ -180,6 +208,7 @@ export function QuranView({
         {filteredSurahs.map((surah) => {
           const isRead = readSurahs.includes(surah.id);
           const isSaved = savedItems.includes(`surah-${surah.id}`);
+          const isSurahOffline = isCached(surah.number);
 
           return (
             <OrnamentedCard
@@ -198,6 +227,26 @@ export function QuranView({
                     <span className="text-xs px-2.5 py-0.5 rounded-md bg-bg-primary text-accent-gold border border-accent-gold/35 shrink-0 font-semibold uppercase tracking-wider">
                       {surah.revelation}
                     </span>
+
+                    {isSurahOffline ? (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold uppercase tracking-wider flex items-center gap-1">
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        <span>Offline</span>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          cacheSurah(surah.number);
+                        }}
+                        disabled={isCaching === surah.number}
+                        title="Save Surah for offline reading"
+                        className="text-[10px] px-2 py-0.5 rounded-full bg-bg-primary hover:bg-accent-gold/15 text-text-muted hover:text-accent-gold border border-accent-gold/25 transition-colors flex items-center gap-1"
+                      >
+                        <Download className="w-2.5 h-2.5" />
+                        <span>{isCaching === surah.number ? 'Saving...' : 'Cache'}</span>
+                      </button>
+                    )}
                   </div>
                   <div className="text-sm text-text-secondary truncate mt-0.5 font-medium">
                     {surah.meaning} · {surah.verses} Verses

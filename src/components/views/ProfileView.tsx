@@ -19,9 +19,12 @@ import {
   Share2,
   Download,
   Palette,
+  Bell,
+  Smartphone,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useNoor, type AppThemeId } from '@/context/NoorContext';
+import { useNotifications } from '@/context/NotificationContext';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { OrnamentedCard, BorderedSubPanel, CornerFlourishes } from '../Ornamentation';
 import { surahs, type Surah } from '@/lib/content';
@@ -34,6 +37,7 @@ interface ProfileViewProps {
 
 export function ProfileView({ onOpenSurah, onNavigate, onOpenShareModal }: ProfileViewProps) {
   const { appTheme, setAppTheme } = useNoor();
+  const { isSubscribed, permission, openModal: openNotificationModal, preferences } = useNotifications();
   const {
     user,
     logout,
@@ -247,6 +251,15 @@ export function ProfileView({ onOpenSurah, onNavigate, onOpenShareModal }: Profi
               </button>
             )}
 
+            <button
+              onClick={openNotificationModal}
+              title="Phone notifications & prayer alerts"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-bg-primary hover:bg-bg-primary/80 border border-accent-gold/45 text-accent-gold text-xs sm:text-sm font-semibold transition-all uppercase tracking-wider"
+            >
+              <Bell className="w-3.5 h-3.5 text-accent-gold" />
+              <span>{isSubscribed && permission === 'granted' ? 'Alerts ON' : 'Phone Alerts'}</span>
+            </button>
+
             {!isInstalled && isInstallable && (
               <button
                 onClick={install}
@@ -327,6 +340,75 @@ export function ProfileView({ onOpenSurah, onNavigate, onOpenShareModal }: Profi
               </button>
             );
           })}
+        </div>
+      </OrnamentedCard>
+
+      {/* Phone Push Notifications & Adhan Alerts Card */}
+      <OrnamentedCard className="p-6 sm:p-7 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-accent-gold/25">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-accent-gold/15 text-accent-gold text-xs font-semibold uppercase tracking-wider border border-accent-gold/30">
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Phone Lock Screen Alerts</span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-bold font-serif text-text-primary">
+              Native Phone Push Notifications
+            </h3>
+            <p className="text-xs sm:text-sm text-text-secondary">
+              Receive prayer time calls, morning Ayah contemplations, and Friday reminders on your phone even when Noor is closed.
+            </p>
+          </div>
+
+          <button
+            onClick={openNotificationModal}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 shadow-xs ${
+              isSubscribed && permission === 'granted'
+                ? 'bg-accent-gold/20 text-accent-gold border border-accent-gold/50 hover:bg-accent-gold/30'
+                : 'bg-accent-gold text-bg-primary hover:bg-accent-gold-dim'
+            }`}
+          >
+            <Bell className="w-3.5 h-3.5" />
+            <span>
+              {isSubscribed && permission === 'granted'
+                ? 'Configure Alerts'
+                : 'Enable Phone Alerts'}
+            </span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div className="p-3 rounded-xl bg-bg-primary/60 border border-accent-gold/25 space-y-1">
+            <span className="text-text-muted text-[11px] block uppercase tracking-wider">Device Status</span>
+            <span className="font-bold text-text-primary flex items-center gap-1.5">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  isSubscribed && permission === 'granted' ? 'bg-emerald-400' : 'bg-amber-400'
+                }`}
+              />
+              {isSubscribed && permission === 'granted' ? 'Connected' : 'Not Connected'}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-bg-primary/60 border border-accent-gold/25 space-y-1">
+            <span className="text-text-muted text-[11px] block uppercase tracking-wider">Adhan & Prayers</span>
+            <span className="font-bold text-text-primary">
+              {preferences.prayerTimes ? 'Active (5 Daily)' : 'Paused'}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-bg-primary/60 border border-accent-gold/25 space-y-1">
+            <span className="text-text-muted text-[11px] block uppercase tracking-wider">Daily Ayah</span>
+            <span className="font-bold text-text-primary">
+              {preferences.dailyAyah ? `Active (${preferences.dailyTime})` : 'Paused'}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-bg-primary/60 border border-accent-gold/25 space-y-1">
+            <span className="text-text-muted text-[11px] block uppercase tracking-wider">Friday Al-Kahf</span>
+            <span className="font-bold text-text-primary">
+              {preferences.fridayKahf ? 'Active (Fridays)' : 'Paused'}
+            </span>
+          </div>
         </div>
       </OrnamentedCard>
 

@@ -10,6 +10,15 @@ import {
   optionalAuth,
   type AuthenticatedRequest,
 } from './auth.ts';
+import {
+  VAPID_PUBLIC_KEY,
+  saveSubscription,
+  removeSubscription,
+  sendTestNotification,
+  broadcastDevotionalReminder,
+  getAllSubscriptions,
+} from './pushNotifications.ts';
+import { getWorkerStatus, triggerImmediateReminder } from './devotionalWorker.ts';
 
 export const apiRouter = Router();
 
@@ -395,3 +404,206 @@ apiRouter.post('/reels/submit', requireAuth, async (req: AuthenticatedRequest, r
     return res.status(500).json({ error: 'Failed to submit reel for review.' });
   }
 });
+
+// ============================================================================
+// PHONE PUSH NOTIFICATION ROUTES
+// ============================================================================
+
+/**
+ * GET /api/notifications/vapid-key
+ * Returns VAPID public key so client can subscribe with PushManager
+ */
+apiRouter.get('/notifications/vapid-key', (_req, res: Response) => {
+  return res.json({ publicKey: VAPID_PUBLIC_KEY });
+});
+
+/**
+ * POST /api/notifications/subscribe
+ * Register or update a phone Web Push subscription
+ */
+apiRouter.post('/notifications/subscribe', optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { subscription, preferences } = req.body || {};
+
+    if (!subscription || !subscription.endpoint || !subscription.keys) {
+      return res.status(400).json({ error: 'Invalid push subscription payload.' });
+    }
+
+    const userId = req.user?.id || null;
+    await saveSubscription(subscription, preferences, userId);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Phone push notification registered successfully.',
+    });
+  } catch (error) {
+    console.error('[Push Subscription Error]', error);
+    return res.status(500).json({ error: 'Failed to save push notification subscription.' });
+  }
+});
+
+/**
+ * POST /api/notifications/unsubscribe
+ * Unregister a phone Web Push subscription
+ */
+apiRouter.post('/notifications/unsubscribe', async (req, res: Response) => {
+  try {
+    const { endpoint } = req.body || {};
+    if (endpoint) {
+      await removeSubscription(endpoint);
+    }
+    return res.json({ success: true, message: 'Unsubscribed from push notifications.' });
+  } catch (error) {
+    console.error('[Push Unsubscribe Error]', error);
+    return res.status(500).json({ error: 'Failed to unsubscribe.' });
+  }
+});
+
+/**
+ * POST /api/notifications/send-test
+ * Sends an immediate real phone test push alert
+ */
+apiRouter.post('/notifications/send-test', async (req, res: Response) => {
+  try {
+    const { endpoint } = req.body || {};
+    const result = await sendTestNotification(endpoint);
+    return res.json({
+      success: result.success,
+      sentCount: result.count,
+      message: result.success
+        ? 'Test notification sent directly to your device.'
+        : 'No active device subscription found. Please enable phone notifications first.',
+    });
+  } catch (error) {
+    console.error('[Test Push Notification Error]', error);
+    return res.status(500).json({ error: 'Failed to send test push notification.' });
+  }
+});
+
+/**
+ * POST /api/notifications/trigger-reminder
+ * Dispatches a spiritual reminder to subscribed devices
+ */
+apiRouter.post('/notifications/trigger-reminder', async (req, res: Response) => {
+  try {
+    const { category, title, body, url } = req.body || {};
+    const validCategory = category || 'prayerTimes';
+
+    const sentCount = await broadcastDevotionalReminder(validCategory, {
+      title: title || 'Noor · Sacred Moment of Reflection',
+      body: body || 'Pause to reflect on the verses of your Creator.',
+      url: url || '/',
+      category: validCategory,
+    });
+
+    return res.json({ success: true, sentCount });
+  } catch (error) {
+    console.error('[Trigger Reminder Error]', error);
+    return res.status(500).json({ error: 'Failed to broadcast reminder.' });
+  }
+});
+
+/**
+ * GET /api/notifications/worker-status
+ * Check status of the autonomous background reminder worker and active subscriptions
+ */
+apiRouter.get('/notifications/worker-status', async (_req, res: Response) => {
+  try {
+    const workerInfo = getWorkerStatus();
+    const subs = await getAllSubscriptions();
+    return res.json({
+      success: true,
+      activeSubscribersCount: subs.length,
+      worker: workerInfo,
+    });
+  } catch (error) {
+    console.error('[Worker Status Error]', error);
+    return res.status(500).json({ error: 'Failed to get worker status.' });
+  }
+});
+
+/**
+ * POST /api/notifications/trigger-now
+ * Force an immediate devotional broadcast (e.g. daily ayah, evening adhkar) to phone lock screen
+ */
+apiRouter.post('/notifications/trigger-now', async (req, res: Response) => {
+  try {
+    const { category } = req.body || {};
+    const result = await triggerImmediateReminder(category || 'dailyAyah');
+    return res.json(result);
+  } catch (error) {
+    console.error('[Trigger Now Error]', error);
+    return res.status(500).json({ error: 'Failed to trigger immediate devotional broadcast.' });
+  }
+});
+
+/**
+ * POST /api/stories/narrate
+ * Generates an adventuristic, high-fidelity neural audio narration using Gemini TTS
+ */
+apiRouter.post('/stories/narrate', async (req, res: Response) => {
+  try {
+    const { text, voice } = req.body || {};
+    if (!text || typeof text !== 'string') {
+      return res.status(400).json({ error: 'Text prompt is required for narration.' });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({
+        error: 'GEMINI_API_KEY not configured on server.',
+        fallbackAvailable: true,
+      });
+    }
+
+    const { GoogleGenAI } = await import('@google/genai');
+    const ai = new GoogleGenAI({ apiKey });
+
+    // Model: gemini-3.8-flash-lite-tts for expressive text-to-speech
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash-lite-tts',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              text: text.slice(0, 1200),
+              speechMetadata: {
+                style: 'Cinematic epic historical audiobook chronicler with deep resonant voice, adventurous pacing, and emotional majesty',
+              },
+            },
+          ],
+        },
+      ],
+      config: {
+        responseModalities: ['AUDIO'],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: voice || 'Fenrir' },
+          },
+        },
+      },
+    });
+
+    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (!base64Audio) {
+      return res.status(502).json({ error: 'No audio returned from Gemini TTS.' });
+    }
+
+    return res.json({
+      success: true,
+      audioBase64: base64Audio,
+      format: 'audio/wav',
+      voice: voice || 'Fenrir',
+    });
+  } catch (error: any) {
+    console.warn('[Gemini TTS] Narration generation note:', error?.message || error);
+    return res.status(500).json({
+      error: error?.message || 'Failed to generate speech with Gemini TTS.',
+      fallbackAvailable: true,
+    });
+  }
+});
+
+
+

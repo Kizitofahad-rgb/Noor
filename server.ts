@@ -9,6 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { apiRouter } from './src/server/routes.ts';
+import { startDevotionalWorker } from './src/server/devotionalWorker.ts';
 
 // ============================================================================
 // CONFIGURATION & FALLBACK KEYS
@@ -103,6 +104,117 @@ function parseISO8601Duration(duration: string): string {
 
 // Fallback verified embeddable videos with tested 200 oEmbed responses
 const verifiedFallbackReels = [
+  // --- QURAN IS LIFE (@quranislife__) REELS (Category: Qur'an) ---
+  {
+    id: 'reel-yt-k1TR39wMFfA',
+    title: 'Surah Maryam (Verses 1-15) · Beautiful Recitation',
+    speaker: 'Fatih Seferagic · QURAN is LIFE (@quranislife__)',
+    duration: '2:30',
+    topic: 'Divine Mercy & Supplication',
+    quote: 'And never have I been, my Lord, in my supplication to You, unblessed. (Quran 19:4)',
+    youtubeId: 'k1TR39wMFfA',
+    category: "Qur'an" as const,
+    likesCount: 9420,
+    featuredAyah: 'Quran 19:4 · "My Lord, indeed my bones have grown feeble, and my head has filled with white, and never have I been in supplication to You unblessed."',
+  },
+  {
+    id: 'reel-yt-_F19UISewTU',
+    title: 'Surah Ar-Rahman (The Most Merciful) · Complete Tilawah',
+    speaker: 'Muhammad Al-Luhaidan · QURAN is LIFE (@quranislife__)',
+    duration: '3:15',
+    topic: 'Divine Blessings & Gratitude',
+    quote: 'So which of the favors of your Lord would you deny? (Quran 55:13)',
+    youtubeId: '_F19UISewTU',
+    category: "Qur'an" as const,
+    likesCount: 12400,
+    featuredAyah: 'Quran 55:13 · "Which of the favors of your Lord would you deny?"',
+  },
+  {
+    id: 'reel-yt-V38Zw-jhQpo',
+    title: 'Surah Al-Kahf (Verses 1-16) · Friday Light',
+    speaker: 'Fatih Seferagic · QURAN is LIFE (@quranislife__)',
+    duration: '2:45',
+    topic: 'Protection & Divine Cave of Refuge',
+    quote: 'Praise be to Allah, who has sent down upon His Servant the Book. (Quran 18:1)',
+    youtubeId: 'V38Zw-jhQpo',
+    category: "Qur'an" as const,
+    likesCount: 8750,
+    featuredAyah: 'Quran 18:10 · "Our Lord, grant us from Yourself mercy and prepare for us from our affair right guidance."',
+  },
+  {
+    id: 'reel-yt-__yAtydw_HM',
+    title: 'Surah At-Tariq (The Night Comer) · Complete Chapter',
+    speaker: 'Yasser Al-Dosari · QURAN is LIFE (@quranislife__)',
+    duration: '2:15',
+    topic: 'Creation & Divine Protection',
+    quote: 'By the sky and the night comer! There is no soul but that it has over it a protector. (Quran 86:1-4)',
+    youtubeId: '__yAtydw_HM',
+    category: "Qur'an" as const,
+    likesCount: 11200,
+    featuredAyah: 'Quran 86:4 · "There is no soul but that it has over it a protector."',
+  },
+  {
+    id: 'reel-yt-HtBqZC4IjVs',
+    title: 'Surah Al-Mu’minun (The Believers)',
+    speaker: 'Islam Sobhi · QURAN is LIFE (@quranislife__)',
+    duration: '1:50',
+    topic: 'Spiritual Longing & Seeking Refuge',
+    quote: 'And say, "My Lord, I seek refuge in You from the incitements of the devils."',
+    youtubeId: 'HtBqZC4IjVs',
+    category: "Qur'an" as const,
+    likesCount: 7890,
+    featuredAyah: 'Quran 23:97 · "And say, \'My Lord, I seek refuge in You from the incitements of the devils.\'"',
+  },
+  {
+    id: 'reel-yt-BOaBvk1JjK4',
+    title: 'Surah Al-Baqarah (Verse 286) · The Climax of Mercy',
+    speaker: 'Ali Jaber · QURAN is LIFE (@quranislife__)',
+    duration: '2:05',
+    topic: 'Divine Forbearance & Forgiveness',
+    quote: 'Allah does not burden a soul beyond that it can bear. (Quran 2:286)',
+    youtubeId: 'BOaBvk1JjK4',
+    category: "Qur'an" as const,
+    likesCount: 14300,
+    featuredAyah: 'Quran 2:286 · "Allah does not burden a soul beyond that it can bear."',
+  },
+  {
+    id: 'reel-yt-spCXiea3KDA',
+    title: 'Surah Al-Ahzab [56] · Blessings upon the Prophet',
+    speaker: 'Badr Al-Turki · QURAN is LIFE (@quranislife__)',
+    duration: '1:10',
+    topic: 'Salawat & Divine Honor',
+    quote: 'Indeed, Allah and His angels confer blessings upon the Prophet. (Quran 33:56)',
+    youtubeId: 'spCXiea3KDA',
+    category: "Qur'an" as const,
+    likesCount: 15800,
+    featuredAyah: 'Quran 33:56 · "Indeed, Allah and His angels confer blessings upon the Prophet."',
+  },
+  {
+    id: 'reel-yt-uHD-uSfvEBE',
+    title: 'Surah Ash-Shams (Complete 1-15) · Soul Purification',
+    speaker: 'Umair Shamim · QURAN is LIFE (@quranislife__)',
+    duration: '2:20',
+    topic: 'Purification of the Soul',
+    quote: 'He has succeeded who purifies it, and he has failed who instills it [with corruption]. (Quran 91:9)',
+    youtubeId: 'uHD-uSfvEBE',
+    category: "Qur'an" as const,
+    likesCount: 6540,
+    featuredAyah: 'Quran 91:9 · "He has succeeded who purifies it."',
+  },
+  {
+    id: 'reel-yt-b8ivkV2jlZA',
+    title: 'Surah Maryam (Verses 75-98) · Deep Contemplation',
+    speaker: 'Salman Obaid Al-Mutairi · QURAN is LIFE (@quranislife__)',
+    duration: '2:55',
+    topic: 'Praise & Monotheism',
+    quote: 'Indeed, those who have believed and done righteous deeds—the Most Merciful will appoint for them affection. (Quran 19:96)',
+    youtubeId: 'b8ivkV2jlZA',
+    category: "Qur'an" as const,
+    likesCount: 7100,
+    featuredAyah: 'Quran 19:96 · "Indeed, those who have believed and done righteous deeds—the Most Merciful will appoint for them affection."',
+  },
+
+  // --- SPIRITUAL REMINDERS & REFLECTIONS ---
   {
     id: 'reel-yt-_PiLcpSPfmQ',
     title: 'To Truly Rely on Allah',
@@ -252,13 +364,38 @@ app.get('/api/reels', async (req: Request, res: Response) => {
       const description = snippet.description || '';
       const duration = parseISO8601Duration(v.contentDetails?.duration);
 
-      let category: 'Remembrance' | 'Overcoming Grief' | 'Prayer & Peace' | 'Character' = 'Remembrance';
-      const lowerText = `${title} ${description}`.toLowerCase();
-      if (lowerText.includes('sabr') || lowerText.includes('grief') || lowerText.includes('sadness') || lowerText.includes('hardship') || lowerText.includes('heal')) {
+      let category: "Qur'an" | 'Remembrance' | 'Overcoming Grief' | 'Prayer & Peace' | 'Character' = 'Remembrance';
+      const lowerText = `${title} ${description} ${channelTitle}`.toLowerCase();
+      if (
+        lowerText.includes('quran') ||
+        lowerText.includes('surah') ||
+        lowerText.includes('recitation') ||
+        lowerText.includes('tilawat') ||
+        lowerText.includes('ayah') ||
+        lowerText.includes('quranislife')
+      ) {
+        category = "Qur'an";
+      } else if (
+        lowerText.includes('sabr') ||
+        lowerText.includes('grief') ||
+        lowerText.includes('sadness') ||
+        lowerText.includes('hardship') ||
+        lowerText.includes('heal')
+      ) {
         category = 'Overcoming Grief';
-      } else if (lowerText.includes('prayer') || lowerText.includes('salah') || lowerText.includes('tahajjud') || lowerText.includes('quran') || lowerText.includes('recitation')) {
+      } else if (
+        lowerText.includes('prayer') ||
+        lowerText.includes('salah') ||
+        lowerText.includes('tahajjud')
+      ) {
         category = 'Prayer & Peace';
-      } else if (lowerText.includes('character') || lowerText.includes('manners') || lowerText.includes('prophet') || lowerText.includes('advice') || lowerText.includes('family')) {
+      } else if (
+        lowerText.includes('character') ||
+        lowerText.includes('manners') ||
+        lowerText.includes('prophet') ||
+        lowerText.includes('advice') ||
+        lowerText.includes('family')
+      ) {
         category = 'Character';
       }
 
@@ -283,10 +420,23 @@ app.get('/api/reels', async (req: Request, res: Response) => {
       };
     });
 
+    // Ensure verified QURAN is LIFE (@quranislife__) recitations are included
+    const quranIsLifeReels = verifiedFallbackReels.filter((r) => r.category === "Qur'an");
+    const combinedReels =
+      query.includes('quran') || query.includes('life')
+        ? [
+            ...quranIsLifeReels,
+            ...mappedReels.filter((m) => !quranIsLifeReels.some((q) => q.youtubeId === m.youtubeId)),
+          ]
+        : [
+            ...mappedReels,
+            ...quranIsLifeReels.filter((q) => !mappedReels.some((m) => m.youtubeId === q.youtubeId)),
+          ];
+
     return res.json({
-      reels: mappedReels,
+      reels: combinedReels,
       source: 'youtube-api',
-      total: mappedReels.length,
+      total: combinedReels.length,
     });
   } catch (error) {
     console.error('Failed to fetch reels from YouTube API:', error);
@@ -453,6 +603,9 @@ async function startServer() {
       console.log(`📖 Quran API:         ${QURAN_API_BASE} (Free & Keyless)`);
       console.log(`🌍 Environment:       ${process.env.NODE_ENV || 'production'}`);
       console.log('====================================================');
+
+      // Start autonomous background reminder worker
+      startDevotionalWorker();
     });
 
     // 3. Graceful shutdown handler for Cloud Run SIGTERM / SIGINT

@@ -52,13 +52,14 @@ export function ReelsView() {
   const [formTopic, setFormTopic] = useState('');
   const [formQuote, setFormQuote] = useState('');
   const [formYoutubeUrl, setFormYoutubeUrl] = useState('');
-  const [formCategory, setFormCategory] = useState<'Remembrance' | 'Overcoming Grief' | 'Prayer & Peace' | 'Character'>('Remembrance');
+  const [formCategory, setFormCategory] = useState<"Qur'an" | 'Remembrance' | 'Overcoming Grief' | 'Prayer & Peace' | 'Character'>("Qur'an");
 
-  const categories = ['All', 'Remembrance', 'Overcoming Grief', 'Prayer & Peace', 'Character'];
+  const categories = ['All', "Qur'an", 'Remembrance', 'Overcoming Grief', 'Prayer & Peace', 'Character'];
 
   const searchPresets = [
+    { label: 'QURAN is LIFE ✨', query: '@quranislife__' },
+    { label: "Qur'an Recitation", query: 'Quran recitation short' },
     { label: 'Islamic Reminders', query: 'Islamic reminder short' },
-    { label: 'Quran Recitation', query: 'Quran recitation short' },
     { label: 'Tawakkul & Trust', query: 'reliance on Allah short' },
     { label: 'Night Prayer', query: 'Tahajjud reminder short' },
   ];
@@ -389,10 +390,23 @@ export function ReelsView() {
               {/* Right / Information & Reflection Details */}
               <div className="p-6 md:w-5/12 flex flex-col justify-between space-y-4">
                 <div className="space-y-3.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-bg-primary text-accent-gold border border-accent-gold/45 uppercase tracking-wider">
-                      {reel.category}
-                    </span>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold px-3 py-1 rounded-full bg-bg-primary text-accent-gold border border-accent-gold/45 uppercase tracking-wider">
+                        {reel.category}
+                      </span>
+                      {(reel.speaker.includes('quranislife') || reel.speaker.includes('QURAN is LIFE')) && (
+                        <a
+                          href="https://www.youtube.com/@quranislife__"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35 text-[11px] font-bold transition-colors"
+                        >
+                          <span>@quranislife__</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
                     <span className="text-xs text-text-secondary flex items-center gap-1.5 font-mono">
                       <Clock className="w-3.5 h-3.5 text-accent-gold" />
                       {reel.duration}
