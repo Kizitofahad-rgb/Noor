@@ -112,7 +112,6 @@ export function Navbar({
     { key: 'stories', label: 'Stories', icon: <Scroll className="w-4 h-4" /> },
     { key: 'library', label: 'Library', icon: <Compass className="w-4 h-4" /> },
     { key: 'reels', label: 'Reels', icon: <Film className="w-4 h-4" /> },
-    { key: 'saved', label: 'Saved', icon: <Bookmark className="w-4 h-4" /> },
     { key: 'profile', label: 'Profile', icon: <User className="w-4 h-4" /> },
   ];
 
@@ -220,6 +219,22 @@ export function Navbar({
             >
               <Volume2 className="w-4 h-4 text-accent-gold" />
               <span className="text-xs font-semibold uppercase tracking-wider hidden lg:inline">Audio</span>
+            </button>
+
+            <button
+              onClick={() => onSelectTab('saved')}
+              title="Saved items & contemplation journal"
+              className={`px-3 py-2 text-text-primary hover:text-accent-gold rounded-xl transition-colors hidden sm:flex items-center gap-1.5 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold ${
+                activeTab === 'saved' ? 'border-accent-gold bg-accent-gold/15 text-accent-gold' : ''
+              }`}
+            >
+              <Bookmark className="w-4 h-4 text-accent-gold" />
+              <span className="text-xs font-semibold uppercase tracking-wider hidden lg:inline">Saved</span>
+              {savedItems.length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-accent-gold text-bg-primary text-[10px] font-bold flex items-center justify-center">
+                  {savedItems.length}
+                </span>
+              )}
             </button>
 
             {user ? (

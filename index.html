@@ -3,6 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <script>
+      // Suppress Vite HMR WebSocket connection errors in cloud container/iframe environment
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event && event.reason && (
+          event.reason.message?.includes('WebSocket') ||
+          String(event.reason).includes('WebSocket')
+        )) {
+          event.preventDefault();
+        }
+      });
+      // Global Google Maps Platform Auth/Quota Failure Handler (Tier 1)
+      window.gm_authFailure = function() {
+        console.error('Google Maps Platform authentication or quota failure');
+        window.__GMP_AUTH_FAILED__ = true;
+        window.dispatchEvent(new CustomEvent('gmp-auth-failure'));
+        var banner = document.getElementById('gmp-quota-banner');
+        if (banner) {
+          banner.style.display = 'block';
+        }
+      };
+    </script>
     <title>Noor</title>
     <meta name="description" content="A tranquil Islamic companion app for Quran recitation and deep dives, daily reflections, hadith & tafsir library, video reminders, and Arabic learning." />
     <meta property="og:title" content="Noor" />

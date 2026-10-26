@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Search,
   Bookmark,
@@ -17,19 +17,34 @@ import {
   MessageCircle,
   Feather,
 } from 'lucide-react';
-import { libraryItems, type LibraryItem } from '@/lib/content';
+import { libraryItems, type LibraryItem, type Surah } from '@/lib/content';
 import { propheticBehaviors, type PropheticBehaviorReflection } from '@/lib/shamailData';
 import { useNoor } from '@/context/NoorContext';
 import { useOfflineStatus } from '@/hooks/useOfflineStatus';
 import { OrnamentedCard, BorderedSubPanel, SectionDivider } from '../Ornamentation';
 import { LearnView } from './LearnView';
+import { SavedView } from './SavedView';
 
-export function LibraryView({ initialSection = 'hadith' }: { initialSection?: 'hadith' | 'arabic' | 'shamail' }) {
+export function LibraryView({
+  initialSection = 'hadith',
+  onOpenSurah,
+  onNavigate,
+}: {
+  initialSection?: 'hadith' | 'arabic' | 'shamail' | 'saved';
+  onOpenSurah?: (surah: Surah) => void;
+  onNavigate?: (tab: 'home' | 'quran' | 'stories' | 'library' | 'reels' | 'learn' | 'saved' | 'profile') => void;
+}) {
   const { savedItems, toggleSaved } = useNoor();
   const { isOnline } = useOfflineStatus();
 
-  // Top Section Switcher: Hadith & Tafsir | Arabic & Tajweed | Prophetic Character
-  const [activeSection, setActiveSection] = useState<'hadith' | 'arabic' | 'shamail'>(initialSection);
+  // Top Section Switcher: Hadith & Tafsir | Arabic & Tajweed | Prophetic Character | Saved & Journal
+  const [activeSection, setActiveSection] = useState<'hadith' | 'arabic' | 'shamail' | 'saved'>(initialSection);
+
+  useEffect(() => {
+    if (initialSection) {
+      setActiveSection(initialSection);
+    }
+  }, [initialSection]);
 
   // Hadith & Tafsir filters
   const [selectedType, setSelectedType] = useState<'All' | 'Hadith' | 'Tafsir'>('All');
@@ -136,6 +151,30 @@ export function LibraryView({ initialSection = 'hadith' }: { initialSection?: 'h
             <Heart className="w-4 h-4" />
             <span>Prophetic Character</span>
             <span className="text-[10px] opacity-80 font-arabic hidden sm:inline">شمائل النبي ﷺ</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSection('saved')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
+              activeSection === 'saved'
+                ? 'bg-accent-gold text-bg-primary font-bold shadow-md'
+                : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary/50'
+            }`}
+          >
+            <Bookmark className="w-4 h-4" />
+            <span>Saved & Journal</span>
+            <span className="text-[10px] opacity-80 font-arabic hidden sm:inline">المحفوظات</span>
+            {savedItems.length > 0 && (
+              <span
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  activeSection === 'saved'
+                    ? 'bg-bg-primary text-accent-gold'
+                    : 'bg-accent-gold/25 text-accent-gold border border-accent-gold/40'
+                }`}
+              >
+                {savedItems.length}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -449,6 +488,14 @@ export function LibraryView({ initialSection = 'hadith' }: { initialSection?: 'h
             )}
           </div>
         </div>
+      )}
+
+      {/* 4. Saved Items & Contemplation Journal */}
+      {activeSection === 'saved' && (
+        <SavedView
+          onOpenSurah={onOpenSurah || (() => {})}
+          onNavigate={onNavigate || (() => {})}
+        />
       )}
     </div>
   );

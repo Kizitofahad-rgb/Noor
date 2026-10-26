@@ -23,6 +23,7 @@ import { tajweedStyles, tajweedOrder } from '@/lib/tajweed';
 import { useNoor } from '@/context/NoorContext';
 import { OrnamentedCard, BorderedSubPanel, SectionDivider } from '../Ornamentation';
 import { LessonDetailModal } from '../LessonDetailModal';
+import { playUniversalDua } from '../../lib/spatialAudio3d';
 
 export function LearnView() {
   const { completedLessons, toggleLesson, isLessonCompleted } = useNoor();
@@ -33,23 +34,50 @@ export function LearnView() {
   const [duaCategory, setDuaCategory] = useState<string>('All');
   const [playingAudioKey, setPlayingAudioKey] = useState<string | null>(null);
 
-  // Play audio pronunciation for Arabic text using browser SpeechSynthesis
+  // Play audio pronunciation for Arabic text using browser SpeechSynthesis or resonant chime fallback
   const playArabicAudio = (key: string, arabicText: string) => {
     setPlayingAudioKey(key);
     try {
+      // Immediate gentle audio tone feedback
+      try {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5 bright chime
+          gain.gain.setValueAtTime(0.12, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.28);
+        }
+      } catch {}
+
       if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
         const utterance = new SpeechSynthesisUtterance(arabicText);
-        utterance.lang = 'ar-SA';
-        utterance.rate = 0.75;
+        const voices = window.speechSynthesis.getVoices();
+        const arabicVoice = voices.find((v) => v.lang.startsWith('ar'));
+        if (arabicVoice) {
+          utterance.voice = arabicVoice;
+          utterance.rate = 0.85;
+        } else {
+          utterance.rate = 0.82;
+        }
+        (window as any).__activeNoorUtterance = utterance;
         utterance.onend = () => setPlayingAudioKey(null);
         utterance.onerror = () => setPlayingAudioKey(null);
         window.speechSynthesis.speak(utterance);
       } else {
-        setTimeout(() => setPlayingAudioKey(null), 1200);
+        setTimeout(() => setPlayingAudioKey(null), 1000);
       }
     } catch {
-      setTimeout(() => setPlayingAudioKey(null), 1200);
+      setTimeout(() => setPlayingAudioKey(null), 1000);
     }
   };
 
@@ -502,15 +530,34 @@ export function LearnView() {
                         <h4 className="font-bold text-text-primary text-lg font-serif mt-0.5">{dua.title}</h4>
                       </div>
                       <button
-                        onClick={() => playArabicAudio(`dua-${dua.id}`, dua.arabic)}
+                        onClick={() => {
+                          const key = `dua-${dua.id}`;
+                          if (playingAudioKey === key) {
+                            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                            setPlayingAudioKey(null);
+                          } else {
+                            setPlayingAudioKey(key);
+                            playUniversalDua(
+                              {
+                                arabic: dua.arabic,
+                                transliteration: dua.transliteration,
+                                translation: dua.translation,
+                                title: dua.title,
+                              },
+                              (isPlaying) => {
+                                if (!isPlaying) setPlayingAudioKey(null);
+                              }
+                            );
+                          }
+                        }}
                         className={`p-2.5 rounded-xl border transition-all ${
                           isPlaying
-                            ? 'bg-accent-gold text-bg-primary border-accent-gold'
+                            ? 'bg-accent-gold text-bg-primary border-accent-gold shadow-md'
                             : 'bg-bg-primary text-accent-gold border-accent-gold/40 hover:border-accent-gold'
                         }`}
-                        title="Listen to Dua pronunciation"
+                        title="Listen to Du'a narration with sacred chime"
                       >
-                        <Volume2 className="w-5 h-5" />
+                        <Volume2 className={`w-5 h-5 ${isPlaying ? 'animate-pulse' : ''}`} />
                       </button>
                     </div>
 

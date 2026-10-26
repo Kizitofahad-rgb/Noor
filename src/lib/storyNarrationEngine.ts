@@ -148,4 +148,16 @@ class AmbientSoundscapeEngine {
   }
 }
 
-export const ambientSoundscape = new AmbientSoundscapeEngine();
+import { spatial3DSound, type SoundscapeType } from './spatialAudio3d';
+
+export { spatial3DSound, type SoundscapeType };
+
+// Backward-compatible ambientSoundscape interface backed by real 3D spatial engine
+export const ambientSoundscape = {
+  start: (preset?: SoundscapeType) => spatial3DSound.start(preset),
+  stop: () => spatial3DSound.stop(),
+  setVolume: (v: number) => spatial3DSound.setVolume(v),
+  setPreset: (p: SoundscapeType) => spatial3DSound.setPreset(p),
+  set3DSpatial: (enabled: boolean) => spatial3DSound.set3DSpatial(enabled),
+  getIsPlaying: () => spatial3DSound.getIsPlaying(),
+};

@@ -46,6 +46,7 @@ import { getSurahAudioUrl } from '@/lib/recitationAudio';
 import { OrnamentedCard, SectionDivider, BorderedSubPanel } from '../Ornamentation';
 import { PrayerTimesWidget } from '../PrayerTimesWidget';
 import { OfflineSanctuaryBanner } from '../OfflineSanctuaryBanner';
+import { DailyPropheticConductCard } from '../DailyPropheticConductCard';
 
 export function HomeView({
   onNavigate,
@@ -856,6 +857,11 @@ export function HomeView({
           </div>
         </div>
       </OrnamentedCard>
+
+      {/* ========================================================================= */}
+      {/* 3. CONDUCT FOR TODAY: WHAT ALLAH EXPECTS & RECONCILIATION FOR WRONGS      */}
+      {/* ========================================================================= */}
+      <DailyPropheticConductCard onPlayAudio={onPlayAudio} />
 
       {/* Situation / Mood Picker */}
       <div className="space-y-3.5">

@@ -20,8 +20,15 @@ import {
   Sunset,
   CheckCircle2,
   Sparkles,
+  Building2,
+  SlidersHorizontal,
+  Navigation,
+  X,
+  Check,
 } from 'lucide-react';
 import { OrnamentedCard, BorderedSubPanel } from './Ornamentation';
+import { MosqueFinderMap } from './MosqueFinderMap';
+import { getRecommendedMosqueStandard } from '../lib/prayerMethodRecommender';
 
 interface LocationState {
   latitude: number;
@@ -90,11 +97,48 @@ export function PrayerTimesWidget() {
     return (localStorage.getItem('noor_prayer_madhab') as 'shafi' | 'hanafi') || 'shafi';
   });
 
+  const [syncedMosque, setSyncedMosque] = useState<{
+    name: string;
+    lat: number;
+    lng: number;
+  } | null>(() => {
+    const saved = localStorage.getItem('noor_synced_mosque');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const [minuteOffsets, setMinuteOffsets] = useState<{
+    fajr: number;
+    dhuhr: number;
+    asr: number;
+    maghrib: number;
+    isha: number;
+  }>(() => {
+    const saved = localStorage.getItem('noor_prayer_offsets');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 };
+      }
+    }
+    return { fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 };
+  });
+
   const [now, setNow] = useState<Date>(new Date());
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [geoError, setGeoError] = useState<string | null>(null);
+  const [autoCalibratedMsg, setAutoCalibratedMsg] = useState<string | null>(null);
   const [showLocationPicker, setShowLocationPicker] = useState<boolean>(false);
   const [showMethodPicker, setShowMethodPicker] = useState<boolean>(false);
+  const [showMosqueDrawer, setShowMosqueDrawer] = useState<boolean>(false);
+  const [showOffsetsPanel, setShowOffsetsPanel] = useState<boolean>(false);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
     return localStorage.getItem('noor_prayer_sound') === 'true';
   });
@@ -108,7 +152,7 @@ export function PrayerTimesWidget() {
     return () => clearInterval(timer);
   }, []);
 
-  // Request browser geolocation
+  // Request high-precision browser geolocation & auto-calibrate local mosque standard
   const requestGeolocation = useCallback(() => {
     if (!navigator.geolocation) {
       setGeoError('Geolocation is not supported by your browser.');
@@ -125,7 +169,7 @@ export function PrayerTimesWidget() {
         let detectedCountry = '';
 
         try {
-          // Free reverse geocoding via BigDataCloud client API
+          // Free reverse geocoding via client API
           const res = await fetch(
             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
           );
@@ -135,7 +179,7 @@ export function PrayerTimesWidget() {
             detectedCountry = data.countryName || '';
           }
         } catch {
-          // If offline or blocked, derive from timezone
+          // Fallback to timezone
           const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
           detectedCity = tz.split('/')[1]?.replace(/_/g, ' ') || 'Local Time';
         }
@@ -150,17 +194,31 @@ export function PrayerTimesWidget() {
 
         setLocation(newLoc);
         localStorage.setItem('noor_user_location', JSON.stringify(newLoc));
+
+        // Auto-calibrate calculation method to local mosque standard if not manually locked
+        if (detectedCountry) {
+          const rec = getRecommendedMosqueStandard(detectedCountry, detectedCity);
+          const hasManualOverride = localStorage.getItem('noor_prayer_method');
+          if (!hasManualOverride) {
+            setMethodId(rec.methodId);
+            setMadhab(rec.madhab);
+            localStorage.setItem('noor_prayer_method', rec.methodId);
+            localStorage.setItem('noor_prayer_madhab', rec.madhab);
+            setAutoCalibratedMsg(`Calibrated to ${rec.methodName} matching local mosques in ${detectedCity}.`);
+          }
+        }
+
         setIsLocating(false);
       },
       (err) => {
         setIsLocating(false);
         if (err.code === 1) {
-          setGeoError('Location permission denied. You can select your city manually below.');
+          setGeoError('Location permission denied. You can select your city or mosque manually on the map.');
         } else {
-          setGeoError('Unable to retrieve location. Using selected location.');
+          setGeoError('Unable to retrieve GPS fix. Using selected location.');
         }
       },
-      { timeout: 10000, enableHighAccuracy: true }
+      { timeout: 12000, enableHighAccuracy: true }
     );
   }, []);
 
@@ -180,9 +238,78 @@ export function PrayerTimesWidget() {
       source: 'preset',
     };
     setLocation(newLoc);
+    setSyncedMosque(null);
+    localStorage.removeItem('noor_synced_mosque');
     localStorage.setItem('noor_user_location', JSON.stringify(newLoc));
     setShowLocationPicker(false);
     setGeoError(null);
+
+    const rec = getRecommendedMosqueStandard(preset.country, preset.name);
+    setMethodId(rec.methodId);
+    setMadhab(rec.madhab);
+    localStorage.setItem('noor_prayer_method', rec.methodId);
+    localStorage.setItem('noor_prayer_madhab', rec.madhab);
+    setAutoCalibratedMsg(`Calibrated to ${rec.methodName} for ${preset.name}.`);
+  };
+
+  const handleSelectMosque = (mosqueData: {
+    latitude: number;
+    longitude: number;
+    mosqueName: string;
+    city: string;
+    country: string;
+    recommendedMethodId?: string;
+    recommendedMadhab?: 'shafi' | 'hanafi';
+  }) => {
+    const newLoc: LocationState = {
+      latitude: mosqueData.latitude,
+      longitude: mosqueData.longitude,
+      city: mosqueData.city,
+      country: mosqueData.country,
+      source: 'gps',
+    };
+    setLocation(newLoc);
+    localStorage.setItem('noor_user_location', JSON.stringify(newLoc));
+
+    const syncObj = {
+      name: mosqueData.mosqueName,
+      lat: mosqueData.latitude,
+      lng: mosqueData.longitude,
+    };
+    setSyncedMosque(syncObj);
+    localStorage.setItem('noor_synced_mosque', JSON.stringify(syncObj));
+
+    if (mosqueData.recommendedMethodId) {
+      setMethodId(mosqueData.recommendedMethodId);
+      localStorage.setItem('noor_prayer_method', mosqueData.recommendedMethodId);
+    }
+    if (mosqueData.recommendedMadhab) {
+      setMadhab(mosqueData.recommendedMadhab);
+      localStorage.setItem('noor_prayer_madhab', mosqueData.recommendedMadhab);
+    }
+
+    setAutoCalibratedMsg(`Successfully synced coordinates and calculation method with ${mosqueData.mosqueName}!`);
+  };
+
+  const handleClearMosqueSync = () => {
+    setSyncedMosque(null);
+    localStorage.removeItem('noor_synced_mosque');
+    setAutoCalibratedMsg('Reverted to direct astronomical calculation.');
+  };
+
+  const handleUpdateOffset = (prayer: keyof typeof minuteOffsets, delta: number) => {
+    const updated = {
+      ...minuteOffsets,
+      [prayer]: Math.max(-30, Math.min(30, (minuteOffsets[prayer] || 0) + delta)),
+    };
+    setMinuteOffsets(updated);
+    localStorage.setItem('noor_prayer_offsets', JSON.stringify(updated));
+  };
+
+  const handleResetOffsets = () => {
+    const reset = { fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 };
+    setMinuteOffsets(reset);
+    localStorage.setItem('noor_prayer_offsets', JSON.stringify(reset));
   };
 
   const handleMethodChange = (id: string) => {
@@ -244,11 +371,19 @@ export function PrayerTimesWidget() {
       } else {
         params.madhab = Madhab.Shafi;
       }
-      return new PrayerTimes(coords, now, params);
+      const raw = new PrayerTimes(coords, now, params);
+      return {
+        fajr: new Date(raw.fajr.getTime() + (minuteOffsets.fajr || 0) * 60000),
+        sunrise: raw.sunrise,
+        dhuhr: new Date(raw.dhuhr.getTime() + (minuteOffsets.dhuhr || 0) * 60000),
+        asr: new Date(raw.asr.getTime() + (minuteOffsets.asr || 0) * 60000),
+        maghrib: new Date(raw.maghrib.getTime() + (minuteOffsets.maghrib || 0) * 60000),
+        isha: new Date(raw.isha.getTime() + (minuteOffsets.isha || 0) * 60000),
+      };
     } catch {
       return null;
     }
-  }, [location.latitude, location.longitude, methodId, madhab, now]);
+  }, [location.latitude, location.longitude, methodId, madhab, minuteOffsets, now]);
 
   // Calculate tomorrow's Fajr for overnight countdown
   const tomorrowFajr = useMemo(() => {
@@ -261,11 +396,11 @@ export function PrayerTimesWidget() {
         params.madhab = Madhab.Hanafi;
       }
       const ptTomorrow = new PrayerTimes(coords, tomorrow, params);
-      return ptTomorrow.fajr;
+      return new Date(ptTomorrow.fajr.getTime() + (minuteOffsets.fajr || 0) * 60000);
     } catch {
       return null;
     }
-  }, [location.latitude, location.longitude, methodId, madhab, now]);
+  }, [location.latitude, location.longitude, methodId, madhab, minuteOffsets, now]);
 
   // Format time (e.g. "05:14 AM")
   const formatTime = (date?: Date | null) => {
@@ -360,7 +495,7 @@ export function PrayerTimesWidget() {
       {/* Header: Location & Calculation Method Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-accent-gold/20 pb-5">
         <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-gold/15 text-accent-gold text-xs font-semibold tracking-wider uppercase border border-accent-gold/30">
               <Clock className="w-3.5 h-3.5" />
               Salat Times
@@ -381,17 +516,57 @@ export function PrayerTimesWidget() {
           </div>
 
           <p className="text-sm text-text-secondary">
-            Accurate astronomical calculations with live countdown to your next prayer.
+            High-precision astronomical calculations calibrated to local mosque timings.
           </p>
         </div>
 
-        {/* Action buttons: Change Location, Method, Sound */}
+        {/* Action buttons: Mosques Map, City, Method, Minute Tune, Sound */}
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Nearby Mosques & Google Map Button */}
+          <button
+            onClick={() => {
+              setShowMosqueDrawer(!showMosqueDrawer);
+              setShowOffsetsPanel(false);
+              setShowLocationPicker(false);
+              setShowMethodPicker(false);
+            }}
+            title="Explore nearby masjids and sync with your local mosque schedule on Google Maps"
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+              showMosqueDrawer || syncedMosque
+                ? 'bg-emerald-950/60 border-emerald-500 text-emerald-300 shadow-sm'
+                : 'bg-bg-card border-accent-gold/30 hover:border-accent-gold text-text-primary'
+            }`}
+          >
+            <Building2 className={`w-3.5 h-3.5 ${syncedMosque ? 'text-emerald-400' : 'text-accent-gold'}`} />
+            <span>Nearby Mosques {syncedMosque ? '✓' : ''}</span>
+          </button>
+
+          {/* Minute offsets button */}
+          <button
+            onClick={() => {
+              setShowOffsetsPanel(!showOffsetsPanel);
+              setShowMosqueDrawer(false);
+              setShowLocationPicker(false);
+              setShowMethodPicker(false);
+            }}
+            title="Fine-tune minutes (+/-) to match your local mosque's published prayer timetable"
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+              Object.values(minuteOffsets).some((v) => v !== 0)
+                ? 'bg-accent-gold/20 border-accent-gold text-accent-gold font-bold'
+                : 'bg-bg-card border-accent-gold/30 hover:border-accent-gold text-text-primary'
+            }`}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-accent-gold" />
+            <span className="hidden sm:inline">Tune Min</span>
+          </button>
+
           <div className="relative">
             <button
               onClick={() => {
                 setShowLocationPicker(!showLocationPicker);
                 setShowMethodPicker(false);
+                setShowMosqueDrawer(false);
+                setShowOffsetsPanel(false);
               }}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-card border border-accent-gold/30 hover:border-accent-gold text-text-primary text-xs font-medium transition-all"
             >
@@ -445,6 +620,8 @@ export function PrayerTimesWidget() {
               onClick={() => {
                 setShowMethodPicker(!showMethodPicker);
                 setShowLocationPicker(false);
+                setShowMosqueDrawer(false);
+                setShowOffsetsPanel(false);
               }}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-card border border-accent-gold/30 hover:border-accent-gold text-text-primary text-xs font-medium transition-all"
             >
@@ -526,6 +703,102 @@ export function PrayerTimesWidget() {
         </div>
       </div>
 
+      {/* Auto-calibration or sync banner */}
+      {autoCalibratedMsg && (
+        <div className="px-4 py-2.5 rounded-lg bg-emerald-950/60 border border-emerald-500/50 text-emerald-200 text-xs sm:text-sm flex items-center justify-between animate-fadeIn">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{autoCalibratedMsg}</span>
+          </div>
+          <button
+            onClick={() => setAutoCalibratedMsg(null)}
+            className="text-emerald-300 font-semibold hover:underline ml-2 text-xs"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Mosque Finder Google Maps Drawer */}
+      {showMosqueDrawer && (
+        <div className="p-4 sm:p-6 rounded-2xl bg-bg-card/95 border border-accent-gold/40 shadow-2xl space-y-4">
+          <div className="flex items-center justify-between border-b border-accent-gold/20 pb-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-accent-gold" />
+                <h3 className="text-base sm:text-lg font-bold text-text-primary">
+                  Nearby Mosques & Local Timetable Synchronization
+                </h3>
+              </div>
+              <p className="text-xs text-text-secondary mt-0.5">
+                Powered by Google Maps Platform. Detect masjids in your immediate vicinity and synchronize your prayer times with your local mosque congregation.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowMosqueDrawer(false)}
+              className="p-1 rounded-lg hover:bg-accent-gold/15 text-text-muted hover:text-text-primary"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <MosqueFinderMap
+            userLocation={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+              city: location.city,
+              country: location.country,
+            }}
+            onSelectMosqueLocation={handleSelectMosque}
+            onClose={() => setShowMosqueDrawer(false)}
+          />
+        </div>
+      )}
+
+      {/* Minute Offsets Panel */}
+      {showOffsetsPanel && (
+        <div className="p-4 rounded-xl bg-bg-card/90 border border-accent-gold/40 shadow-xl space-y-3">
+          <div className="flex items-center justify-between border-b border-accent-gold/20 pb-2">
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-accent-gold flex items-center gap-1.5">
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                Mosque Minute Fine-Tuning (Iqamah / Timetable Offsets)
+              </h4>
+              <p className="text-[11px] text-text-muted mt-0.5">
+                Calibrate by +/- minutes if your local masjid publishes specific safety margins or fixed adhan delays.
+              </p>
+            </div>
+            <button onClick={handleResetOffsets} className="text-[11px] text-accent-gold hover:underline">
+              Reset All to 0m
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {(['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const).map((p) => (
+              <div key={p} className="p-2.5 rounded-lg bg-bg-primary/80 border border-accent-gold/25 flex flex-col items-center">
+                <span className="text-xs font-semibold uppercase text-text-secondary">{p}</span>
+                <span className="text-base font-mono font-bold text-accent-gold my-1">
+                  {minuteOffsets[p] > 0 ? `+${minuteOffsets[p]}` : minuteOffsets[p]}m
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleUpdateOffset(p, -1)}
+                    className="w-6 h-6 rounded bg-bg-card border border-accent-gold/40 hover:bg-accent-gold/20 text-xs font-bold text-accent-gold"
+                  >
+                    -
+                  </button>
+                  <button
+                    onClick={() => handleUpdateOffset(p, 1)}
+                    className="w-6 h-6 rounded bg-bg-card border border-accent-gold/40 hover:bg-accent-gold/20 text-xs font-bold text-accent-gold"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {geoError && (
         <div className="px-4 py-2.5 rounded-lg bg-amber-950/60 border border-amber-600/50 text-amber-200 text-xs sm:text-sm flex items-center justify-between">
           <span>{geoError}</span>
@@ -544,7 +817,7 @@ export function PrayerTimesWidget() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
             {/* Left Column: Next Prayer Name & Arabic */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs uppercase tracking-wider font-semibold text-accent-gold">
                   Next Prayer
                 </span>
@@ -552,6 +825,19 @@ export function PrayerTimesWidget() {
                 <span className="text-xs text-text-secondary">
                   Current window: <span className="text-text-primary font-medium">{prayerSchedule.currentActive}</span>
                 </span>
+                {syncedMosque && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 text-[11px] font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="max-w-[200px] truncate">Synced: {syncedMosque.name}</span>
+                    <button
+                      onClick={handleClearMosqueSync}
+                      title="Clear mosque sync"
+                      className="hover:text-white ml-0.5"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </button>
+                  </span>
+                )}
               </div>
 
               <div className="flex items-baseline gap-3 flex-wrap">
@@ -582,8 +868,11 @@ export function PrayerTimesWidget() {
               <div className="text-3xl sm:text-4xl md:text-5xl font-mono font-bold tracking-tight text-accent-gold">
                 {prayerSchedule.countdownStr}
               </div>
-              <div className="text-xs text-text-muted flex items-center gap-2">
-                <span>Calculated via {activeMethodName.split(' ')[0]}</span>
+              <div className="text-xs text-text-muted flex items-center gap-2 flex-wrap">
+                <span>{syncedMosque ? `Mosque Calibrated` : `Via ${activeMethodName.split(' ')[0]}`}</span>
+                {Object.values(minuteOffsets).some((v) => v !== 0) && (
+                  <span className="text-accent-gold">· Offsets active</span>
+                )}
                 {soundEnabled && <span className="text-accent-gold">· Chime on</span>}
               </div>
             </div>

@@ -19,6 +19,9 @@ import {
   Feather,
   Radio,
   Loader2,
+  Sliders,
+  Volume1,
+  Waves,
 } from 'lucide-react';
 import type { ProphetStory } from '@/lib/storiesData';
 import { getSurahAudioUrl } from '@/lib/recitationAudio';
@@ -27,8 +30,13 @@ import { BorderedSubPanel, CornerFlourishes } from './Ornamentation';
 import {
   generateAdventuristicScript,
   getFullAdventuristicNarration,
-  ambientSoundscape,
 } from '@/lib/storyNarrationEngine';
+import {
+  spatial3DSound,
+  bulletproofNarrator,
+  SOUNDSCAPE_PRESETS,
+  type SoundscapeType,
+} from '@/lib/spatialAudio3d';
 
 interface StoryAudioPlayerProps {
   story: ProphetStory;
@@ -36,7 +44,7 @@ interface StoryAudioPlayerProps {
   activeSectionId?: string;
 }
 
-export type NarratorPersona = 'chronicler' | 'traveler' | 'sage' | 'gemini_ai';
+export type NarratorPersona = 'chronicler' | 'traveler' | 'sage';
 
 export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: StoryAudioPlayerProps) {
   const { reciterId } = useNoor();
@@ -52,8 +60,21 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
   const [activeTrackIndex, setActiveTrackIndex] = useState(0);
   const [isWakeLockActive, setIsWakeLockActive] = useState(false);
   const [isAmbientEnabled, setIsAmbientEnabled] = useState(true);
-  const [isLoadingAiAudio, setIsLoadingAiAudio] = useState(false);
   const [activeStoryScene, setActiveStoryScene] = useState<number>(0);
+
+  // 3D Soundscape and Live Narration State
+  const defaultSoundscape: SoundscapeType =
+    story.id === 'nuh' || story.id === 'musa'
+      ? 'sea-storm'
+      : story.id === 'muhammad' || story.id === 'adam'
+      ? 'sacred-night'
+      : 'desert-wind';
+
+  const [soundscapePreset, setSoundscapePreset] = useState<SoundscapeType>(defaultSoundscape);
+  const [is3dSpatial, setIs3dSpatial] = useState<boolean>(true);
+  const [soundscapeVolume, setSoundscapeVolume] = useState<number>(0.4);
+  const [currentNarratedSentence, setCurrentNarratedSentence] = useState<string>('');
+  const [show3dControls, setShow3dControls] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const aiAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -157,7 +178,7 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
       setIsPlaying(false);
       setCurrentTime(0);
       releaseWakeLock();
-      ambientSoundscape.stop();
+      spatial3DSound.stop();
     };
 
     audio.addEventListener('loadedmetadata', onLoadedMetadata);
@@ -170,7 +191,7 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
       audio.removeEventListener('ended', onEnded);
       audio.pause();
       releaseWakeLock();
-      ambientSoundscape.stop();
+      spatial3DSound.stop();
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
@@ -178,128 +199,85 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
   }, [quranAudioUrl]);
 
   /**
-   * Spoken Adventuristic Narration Engine
+   * Spoken Adventuristic Narration Engine with 3D Spatial Soundscapes
    */
-  const startAdventuristicSpeech = async (startFromSecond: number) => {
+  const startAdventuristicSpeech = (startFromSecond: number) => {
     if (typeof window === 'undefined') return;
 
-    // 1. Start atmospheric ambient soundscape if enabled
+    // 1. Start 3D atmospheric soundscape (wind, ocean, sacred night) if enabled
     if (isAmbientEnabled) {
-      ambientSoundscape.start();
+      spatial3DSound.setVolume(soundscapeVolume);
+      spatial3DSound.set3DSpatial(is3dSpatial);
+      spatial3DSound.start(soundscapePreset);
     } else {
-      ambientSoundscape.stop();
+      spatial3DSound.stop();
     }
 
-    // 2. If Gemini AI Neural voice selected, attempt server-side studio generation
-    if (narratorPersona === 'gemini_ai') {
-      try {
-        setIsLoadingAiAudio(true);
-        const scriptText = `${adventuristicScript.opening}. ${adventuristicScript.climacticMoment}. ${adventuristicScript.wisdomLegacy}`;
-        const res = await fetch('/api/stories/narrate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text: scriptText,
-            voice: 'Fenrir', // Deep cinematic baritone
-            storyName: story.name,
-          }),
-        });
+    // 2. Prepare full adventuristic chronicle text
+    const fullText = getFullAdventuristicNarration(story);
+    bulletproofNarrator.loadText(fullText);
 
-        const data = await res.json();
-        if (data.success && data.audioBase64) {
-          const aiAudio = new Audio(`data:audio/wav;base64,${data.audioBase64}`);
-          aiAudio.playbackRate = playbackRate;
-          aiAudioRef.current = aiAudio;
+    const totalSentences = bulletproofNarrator.getSentences().length;
+    const startIndex = Math.min(
+      Math.floor((startFromSecond / (audioDuration || 180)) * totalSentences),
+      Math.max(0, totalSentences - 1)
+    );
 
-          aiAudio.onended = () => {
-            setIsPlaying(false);
-            setCurrentTime(0);
-            ambientSoundscape.stop();
-            releaseWakeLock();
-          };
+    bulletproofNarrator.start({
+      rate: playbackRate,
+      persona: narratorPersona,
+      startIndex,
+      onProgress: (idx, total, sentence) => {
+        setCurrentNarratedSentence(sentence);
+        const estTime = Math.floor((idx / total) * audioDuration);
+        setCurrentTime(estTime);
 
-          await aiAudio.play();
-          setIsLoadingAiAudio(false);
-          return;
-        }
-      } catch (err) {
-        console.warn('[Gemini TTS] Fallback to client voice engine:', err);
-      } finally {
-        setIsLoadingAiAudio(false);
-      }
-    }
-
-    // 3. Client-side Speech Synthesis with custom dramatic persona calibration
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-
-      const fullText = getFullAdventuristicNarration(story);
-      const words = fullText.split(' ');
-      const wordsPerSecond = 2.2 * playbackRate;
-      const startWordIndex = Math.min(Math.floor(startFromSecond * wordsPerSecond), words.length - 1);
-      const remainingText = words.slice(startWordIndex).join(' ');
-
-      const utterance = new SpeechSynthesisUtterance(remainingText);
-      utterance.rate = playbackRate * (narratorPersona === 'sage' ? 0.88 : narratorPersona === 'traveler' ? 1.05 : 0.95);
-      utterance.pitch = narratorPersona === 'sage' ? 0.82 : narratorPersona === 'traveler' ? 1.06 : 0.90;
-
-      const voices = window.speechSynthesis.getVoices();
-
-      // Find the most natural human narrator based on persona
-      let selectedVoice = null;
-      if (narratorPersona === 'chronicler') {
-        // Dramatic British or Natural Baritone
-        selectedVoice =
-          voices.find((v) => (v.name.includes('Daniel') || v.name.includes('Oliver') || v.name.includes('Arthur') || v.name.includes('UK') || v.name.includes('Great Britain')) && v.lang.startsWith('en')) ||
-          voices.find((v) => v.name.includes('Natural') && v.lang.startsWith('en'));
-      } else if (narratorPersona === 'traveler') {
-        // Spirited adventurous narrator
-        selectedVoice =
-          voices.find((v) => (v.name.includes('Guy') || v.name.includes('David') || v.name.includes('Google US')) && v.lang.startsWith('en')) ||
-          voices.find((v) => v.lang.startsWith('en'));
-      } else {
-        // Calm sage narrator
-        selectedVoice =
-          voices.find((v) => (v.name.includes('Serena') || v.name.includes('George') || v.name.includes('Enhanced')) && v.lang.startsWith('en')) ||
-          voices.find((v) => v.lang.startsWith('en'));
-      }
-
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      } else if (voices.length > 0) {
-        utterance.voice = voices.find((v) => v.lang.startsWith('en')) || voices[0];
-      }
-
-      utterance.onend = () => {
+        // Update active scene based on narrative progress
+        const ratio = idx / total;
+        if (ratio < 0.25) setActiveStoryScene(0);
+        else if (ratio < 0.55) setActiveStoryScene(1);
+        else if (ratio < 0.85) setActiveStoryScene(2);
+        else setActiveStoryScene(3);
+      },
+      onEnd: () => {
         setIsPlaying(false);
         setCurrentTime(0);
-        ambientSoundscape.stop();
+        setCurrentNarratedSentence('');
+        spatial3DSound.stop();
         releaseWakeLock();
-      };
+      },
+    });
+  };
 
-      utterance.onerror = () => {
-        setIsPlaying(false);
-        ambientSoundscape.stop();
-      };
+  const [isPreviewingAtmosphere, setIsPreviewingAtmosphere] = useState(false);
 
-      speechUtteranceRef.current = utterance;
-      window.speechSynthesis.speak(utterance);
+  const toggleAtmospherePreview = () => {
+    if (isPreviewingAtmosphere) {
+      spatial3DSound.stop();
+      setIsPreviewingAtmosphere(false);
+    } else {
+      spatial3DSound.setVolume(soundscapeVolume);
+      spatial3DSound.set3DSpatial(is3dSpatial);
+      spatial3DSound.start(soundscapePreset);
+      setIsPreviewingAtmosphere(true);
     }
   };
 
-  const handlePlay = async () => {
+  const handlePlay = () => {
     setIsPlaying(true);
-    await requestWakeLock();
+    setIsPreviewingAtmosphere(false);
+    requestWakeLock().catch(() => {});
     updateMediaSession();
 
     if (audioSource === 'quran') {
-      ambientSoundscape.stop();
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+      if (!isAmbientEnabled) {
+        spatial3DSound.stop();
+      } else {
+        spatial3DSound.setVolume(soundscapeVolume);
+        spatial3DSound.set3DSpatial(is3dSpatial);
+        spatial3DSound.start(soundscapePreset);
       }
-      if (aiAudioRef.current) {
-        aiAudioRef.current.pause();
-      }
+      bulletproofNarrator.pause();
       if (audioRef.current) {
         audioRef.current.playbackRate = playbackRate;
         audioRef.current.play().catch((err) => {
@@ -316,17 +294,13 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
 
   const handlePause = () => {
     setIsPlaying(false);
+    setIsPreviewingAtmosphere(false);
     releaseWakeLock();
-    ambientSoundscape.stop();
+    spatial3DSound.stop();
+    bulletproofNarrator.pause();
 
     if (audioRef.current) {
       audioRef.current.pause();
-    }
-    if (aiAudioRef.current) {
-      aiAudioRef.current.pause();
-    }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
     }
   };
 
@@ -342,8 +316,17 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
     setCurrentTime(targetSecond);
     if (audioSource === 'quran' && audioRef.current) {
       audioRef.current.currentTime = targetSecond;
-    } else if (audioSource === 'narration' && isPlaying) {
-      startAdventuristicSpeech(targetSecond);
+    } else if (audioSource === 'narration') {
+      if (isPlaying) {
+        startAdventuristicSpeech(targetSecond);
+      } else {
+        const totalSentences = bulletproofNarrator.getSentences().length;
+        const targetSentence = Math.min(
+          Math.floor((targetSecond / (audioDuration || 180)) * totalSentences),
+          Math.max(0, totalSentences - 1)
+        );
+        bulletproofNarrator.seekSentence(targetSentence);
+      }
     }
   };
 
@@ -362,9 +345,6 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
     if (audioRef.current) {
       audioRef.current.playbackRate = newRate;
     }
-    if (aiAudioRef.current) {
-      aiAudioRef.current.playbackRate = newRate;
-    }
     if (audioSource === 'narration' && isPlaying) {
       startAdventuristicSpeech(currentTime);
     }
@@ -375,6 +355,7 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
     handlePause();
     setAudioSource(newSource);
     setCurrentTime(0);
+    setCurrentNarratedSentence('');
     if (wasPlaying) {
       setTimeout(() => {
         setIsPlaying(true);
@@ -388,6 +369,22 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
         }
       }, 100);
     }
+  };
+
+  const handleSelectSoundscape = (preset: SoundscapeType) => {
+    setSoundscapePreset(preset);
+    spatial3DSound.setPreset(preset);
+  };
+
+  const handleToggle3D = () => {
+    const next = !is3dSpatial;
+    setIs3dSpatial(next);
+    spatial3DSound.set3DSpatial(next);
+  };
+
+  const handleVolumeChange = (vol: number) => {
+    setSoundscapeVolume(vol);
+    spatial3DSound.setVolume(vol);
   };
 
   // Timer tick for narration progress and scene tracking
@@ -509,68 +506,183 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
         </div>
       </div>
 
-      {/* Narrator Voice Persona & Soundscape Controls (Only when in Chronicle mode) */}
+      {/* 3D Spatial Audio & Atmospheric Background Effects Controls */}
       {audioSource === 'narration' && (
-        <div className="p-4 rounded-2xl bg-bg-primary/60 border border-accent-gold/30 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <div className="text-xs font-bold uppercase tracking-wider text-accent-gold flex items-center gap-1.5">
-              <Feather className="w-3.5 h-3.5" />
-              <span>Adventuristic Narrator Persona</span>
+        <div className="p-4 sm:p-5 rounded-2xl bg-bg-primary/70 border border-accent-gold/35 space-y-4 shadow-inner">
+          {/* Top Row: Persona & 3D Binaural Switch */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-accent-gold/20 pb-3">
+            <div className="space-y-0.5">
+              <div className="text-xs font-bold uppercase tracking-wider text-accent-gold flex items-center gap-1.5">
+                <Wind className="w-3.5 h-3.5" />
+                <span>3D Cinematic Atmospheric Soundscape</span>
+              </div>
+              <p className="text-[11px] text-text-secondary">
+                Procedural binaural wind, roaring waves, and acoustic drones to immerse you directly in the story.
+              </p>
             </div>
 
-            {/* Ambient Soundscape Toggle */}
-            <button
-              onClick={() => {
-                const next = !isAmbientEnabled;
-                setIsAmbientEnabled(next);
-                if (!next) {
-                  ambientSoundscape.stop();
-                } else if (isPlaying) {
-                  ambientSoundscape.start();
-                }
-              }}
-              className={`px-3 py-1 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                isAmbientEnabled
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-xs'
-                  : 'bg-bg-card border-accent-gold/25 text-text-muted hover:text-text-primary'
-              }`}
-              title="Adds an organic desert resonance and sacred harmonic ambience behind the voice"
-            >
-              <Wind className="w-3.5 h-3.5" />
-              <span>{isAmbientEnabled ? 'Atmospheric Drone ON 🌿' : 'Atmospheric Drone OFF'}</span>
-            </button>
-          </div>
-
-          {/* Voice Persona Selector Pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[
-              { id: 'chronicler' as const, label: 'Desert Chronicler', role: 'Dignified Baritone', icon: '🎙️' },
-              { id: 'traveler' as const, label: 'Adventurer', role: 'Spirited & Vivid', icon: '🦅' },
-              { id: 'sage' as const, label: 'Ancient Sage', role: 'Deep & Reverent', icon: '🌿' },
-              { id: 'gemini_ai' as const, label: 'Gemini Studio AI', role: 'Neural Deep Voice', icon: '✨' },
-            ].map((p) => (
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Preview Atmosphere Soundscape Button */}
               <button
-                key={p.id}
+                onClick={toggleAtmospherePreview}
+                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isPreviewingAtmosphere
+                    ? 'bg-accent-gold text-bg-primary border-accent-gold shadow-md font-bold'
+                    : 'bg-bg-card border-accent-gold/35 hover:border-accent-gold text-accent-gold'
+                }`}
+                title="Preview this 3D atmospheric environment (wind gusts, swells, binaural panning) right now"
+              >
+                <Radio className={`w-3.5 h-3.5 ${isPreviewingAtmosphere ? 'animate-pulse' : ''}`} />
+                <span>{isPreviewingAtmosphere ? 'Stop 3D Preview' : 'Test 3D Wind'}</span>
+              </button>
+
+              {/* 3D Spatial Binaural Toggle */}
+              <button
+                onClick={handleToggle3D}
+                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  is3dSpatial
+                    ? 'bg-amber-500/25 border-amber-400 text-amber-300 shadow-sm'
+                    : 'bg-bg-card border-accent-gold/25 text-text-muted hover:text-text-primary'
+                }`}
+                title="Binaural 3D audio pans winds and spatial acoustics dynamically between your ears"
+              >
+                <Waves className="w-3.5 h-3.5" />
+                <span>{is3dSpatial ? '3D Spatial Audio ON' : 'Stereo Audio'}</span>
+              </button>
+
+              {/* Master Atmospheric Toggle */}
+              <button
                 onClick={() => {
-                  setNarratorPersona(p.id);
-                  if (isPlaying) {
-                    handlePause();
-                    setTimeout(() => handlePlay(), 150);
+                  const next = !isAmbientEnabled;
+                  setIsAmbientEnabled(next);
+                  if (!next) {
+                    spatial3DSound.stop();
+                    setIsPreviewingAtmosphere(false);
+                  } else if (isPlaying || isPreviewingAtmosphere) {
+                    spatial3DSound.setVolume(soundscapeVolume);
+                    spatial3DSound.set3DSpatial(is3dSpatial);
+                    spatial3DSound.start(soundscapePreset);
                   }
                 }}
-                className={`p-2.5 rounded-xl border text-left transition-all ${
-                  narratorPersona === p.id
-                    ? 'bg-accent-gold/20 text-accent-gold border-accent-gold shadow-sm ring-1 ring-accent-gold'
-                    : 'bg-bg-card border-accent-gold/25 text-text-secondary hover:text-text-primary hover:border-accent-gold/50'
+                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isAmbientEnabled
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-xs'
+                    : 'bg-bg-card border-accent-gold/25 text-text-muted hover:text-text-primary'
                 }`}
               >
-                <div className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
-                  <span>{p.icon}</span>
-                  <span className="truncate">{p.label}</span>
-                </div>
-                <div className="text-[10px] text-text-muted mt-0.5 truncate">{p.role}</div>
+                <Wind className="w-3.5 h-3.5" />
+                <span>{isAmbientEnabled ? 'Wind & Effects ON' : 'Effects Muted'}</span>
               </button>
-            ))}
+            </div>
+          </div>
+
+          {/* Soundscape Presets Selection */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-[11px] font-bold text-accent-gold uppercase tracking-wider">
+              <span>Choose Atmospheric Environment</span>
+              <span className="text-text-muted font-normal lowercase">procedural physical audio</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {SOUNDSCAPE_PRESETS.map((preset) => {
+                const isSelected = soundscapePreset === preset.id;
+                return (
+                  <button
+                    key={preset.id}
+                    onClick={() => handleSelectSoundscape(preset.id)}
+                    className={`p-2.5 rounded-xl border text-left transition-all ${
+                      isSelected
+                        ? 'bg-accent-gold/20 text-accent-gold border-accent-gold shadow-sm ring-1 ring-accent-gold'
+                        : 'bg-bg-card border-accent-gold/25 text-text-secondary hover:text-text-primary hover:border-accent-gold/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
+                      <span>{preset.icon}</span>
+                      <span className="truncate">{preset.name}</span>
+                    </div>
+                    <div className="text-[10px] text-text-muted mt-1 line-clamp-2 leading-tight">
+                      {preset.description}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Wind & Soundscape Volume Slider */}
+          {isAmbientEnabled && (
+            <div className="flex items-center gap-3 pt-1 text-xs">
+              <span className="text-text-muted flex items-center gap-1 shrink-0">
+                <Volume1 className="w-3.5 h-3.5 text-accent-gold" />
+                <span>Wind Volume:</span>
+              </span>
+              <input
+                type="range"
+                min="0.05"
+                max="1.0"
+                step="0.05"
+                value={soundscapeVolume}
+                onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                className="flex-1 accent-accent-gold cursor-pointer"
+              />
+              <span className="text-xs font-mono text-accent-gold shrink-0">
+                {Math.round(soundscapeVolume * 100)}%
+              </span>
+            </div>
+          )}
+
+          {/* Voice Persona Selection */}
+          <div className="pt-2 border-t border-accent-gold/20 space-y-2">
+            <div className="text-[11px] font-bold text-accent-gold uppercase tracking-wider">
+              Narrator Voice Persona
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'chronicler' as const, label: 'Desert Chronicler', role: 'Dignified Baritone', icon: '🎙️' },
+                { id: 'traveler' as const, label: 'Adventurer', role: 'Spirited & Vivid', icon: '🦅' },
+                { id: 'sage' as const, label: 'Ancient Sage', role: 'Deep & Reverent', icon: '🌿' },
+              ].map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    setNarratorPersona(p.id);
+                    if (isPlaying) {
+                      handlePause();
+                      setTimeout(() => handlePlay(), 120);
+                    }
+                  }}
+                  className={`p-2.5 rounded-xl border text-left transition-all ${
+                    narratorPersona === p.id
+                      ? 'bg-accent-gold/20 text-accent-gold border-accent-gold shadow-sm ring-1 ring-accent-gold'
+                      : 'bg-bg-card border-accent-gold/25 text-text-secondary hover:text-text-primary hover:border-accent-gold/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
+                    <span>{p.icon}</span>
+                    <span className="truncate">{p.label}</span>
+                  </div>
+                  <div className="text-[10px] text-text-muted mt-0.5 truncate">{p.role}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live Currently Narrated Sentence Card */}
+      {audioSource === 'narration' && isPlaying && currentNarratedSentence && (
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-accent-gold/15 via-accent-gold/10 to-transparent border border-accent-gold/45 shadow-md flex items-start gap-3 animate-fadeIn">
+          <div className="relative flex items-center justify-center shrink-0 mt-1">
+            <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-accent-gold opacity-75"></span>
+            <div className="relative w-3 h-3 rounded-full bg-accent-gold" />
+          </div>
+          <div className="space-y-0.5 flex-1 min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-accent-gold flex items-center gap-2">
+              <span>Now Speaking in 3D Audio</span>
+              <span className="text-text-muted font-mono">· scene {activeStoryScene + 1}/4</span>
+            </div>
+            <p className="text-xs sm:text-sm font-serif italic text-text-primary leading-relaxed">
+              "{currentNarratedSentence}"
+            </p>
           </div>
         </div>
       )}
@@ -596,7 +708,7 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
           <p className="text-xs text-text-secondary">
             {audioSource === 'quran'
               ? `Recited by Qari ${reciterId} · Continues playing seamlessly on lock screen & sleep`
-              : `Voiced by ${narratorPersona === 'chronicler' ? 'The Desert Chronicler' : narratorPersona === 'traveler' ? 'The Adventurous Traveler' : narratorPersona === 'gemini_ai' ? 'Gemini Neural AI (Fenrir)' : 'The Ancient Sage'} with sacred atmospheric soundtrack`}
+              : `Voiced by ${narratorPersona === 'chronicler' ? 'The Desert Chronicler' : narratorPersona === 'traveler' ? 'The Adventurous Traveler' : 'The Ancient Sage'} with 3D binaural atmospheric soundscape`}
           </p>
         </div>
 
@@ -665,13 +777,10 @@ export function StoryAudioPlayer({ story, onSectionClick, activeSectionId }: Sto
 
         <button
           onClick={togglePlay}
-          disabled={isLoadingAiAudio}
-          title={isPlaying ? 'Pause' : 'Play'}
+          title={isPlaying ? 'Pause' : 'Play in 3D Audio'}
           className="w-14 h-14 rounded-full bg-accent-gold hover:bg-accent-gold-dim text-bg-primary flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer font-bold"
         >
-          {isLoadingAiAudio ? (
-            <Loader2 className="w-6 h-6 animate-spin" />
-          ) : isPlaying ? (
+          {isPlaying ? (
             <Pause className="w-6 h-6 fill-current" />
           ) : (
             <Play className="w-6 h-6 fill-current ml-1" />

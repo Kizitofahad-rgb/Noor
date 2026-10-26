@@ -31,6 +31,7 @@ function NoorApp() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
   const [selectedSurahForDive, setSelectedSurahForDive] = useState<Surah | null>(null);
+  const [libraryInitialSection, setLibraryInitialSection] = useState<'hadith' | 'arabic' | 'shamail' | 'saved'>('hadith');
 
   // Start background prayer and devotional notifications scheduler
   useEffect(() => {
@@ -42,6 +43,19 @@ function NoorApp() {
 
   const handlePlayAudio = (state: ActiveAudioState) => {
     setActiveAudio(state);
+  };
+
+  const handleNavigate = (tab: any) => {
+    if (tab === 'saved') {
+      setLibraryInitialSection('saved');
+      setActiveTab('library');
+    } else if (tab === 'learn') {
+      setLibraryInitialSection('arabic');
+      setActiveTab('library');
+    } else {
+      setActiveTab(tab);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const activeThemeSection =
@@ -76,10 +90,7 @@ function NoorApp() {
       {/* Top Navigation */}
       <Navbar
         activeTab={activeTab}
-        onSelectTab={(tab) => {
-          setActiveTab(tab);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onSelectTab={handleNavigate}
         onOpenAudioSettings={() => setIsAudioSettingsOpen(true)}
         onOpenShareModal={() => setIsShareModalOpen(true)}
         onOpenThemeModal={() => setIsThemeModalOpen(true)}
@@ -90,10 +101,7 @@ function NoorApp() {
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
         {activeTab === 'home' && (
           <HomeView
-            onNavigate={(tab) => {
-              setActiveTab(tab);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onNavigate={handleNavigate}
             onOpenSurah={(surah) => setSelectedSurahForDive(surah)}
             onPlayAudio={handlePlayAudio}
           />
@@ -110,37 +118,41 @@ function NoorApp() {
         {activeTab === 'stories' && (
           <StoriesView
             onOpenSurah={(surah) => setSelectedSurahForDive(surah)}
-            onNavigate={(tab) => {
-              setActiveTab(tab);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onNavigate={handleNavigate}
             onOpenShareModal={() => setIsShareModalOpen(true)}
           />
         )}
 
-        {activeTab === 'library' && <LibraryView />}
+        {activeTab === 'library' && (
+          <LibraryView
+            initialSection={libraryInitialSection}
+            onOpenSurah={(surah) => setSelectedSurahForDive(surah)}
+            onNavigate={handleNavigate}
+          />
+        )}
 
         {activeTab === 'reels' && <ReelsView />}
 
-        {activeTab === 'learn' && <LibraryView initialSection="arabic" />}
+        {activeTab === 'learn' && (
+          <LibraryView
+            initialSection="arabic"
+            onOpenSurah={(surah) => setSelectedSurahForDive(surah)}
+            onNavigate={handleNavigate}
+          />
+        )}
 
         {activeTab === 'saved' && (
-          <SavedView
+          <LibraryView
+            initialSection="saved"
             onOpenSurah={(surah) => setSelectedSurahForDive(surah)}
-            onNavigate={(tab) => {
-              setActiveTab(tab);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onNavigate={handleNavigate}
           />
         )}
 
         {activeTab === 'profile' && (
           <ProfileView
             onOpenSurah={(surah) => setSelectedSurahForDive(surah)}
-            onNavigate={(tab) => {
-              setActiveTab(tab);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onNavigate={handleNavigate}
             onOpenShareModal={() => setIsShareModalOpen(true)}
           />
         )}
