@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   BookOpen,
   Bookmark,
@@ -8,11 +8,12 @@ import {
   Film,
   Compass,
   User,
-  LogIn,
   Share2,
   Scroll,
   Palette,
   Bell,
+  SlidersHorizontal,
+  ChevronDown,
 } from 'lucide-react';
 import { useNoor } from '@/context/NoorContext';
 import { useAuth } from '@/context/AuthContext';
@@ -107,9 +108,31 @@ export function Navbar({
   onOpenThemeModal?: () => void;
   onOpenNotificationModal?: () => void;
 }) {
-  const { savedItems } = useNoor();
-  const { user, openAuthModal } = useAuth();
+  const { savedItems, appTheme } = useNoor();
+  const { user } = useAuth();
   const { isSubscribed, permission } = useNotifications();
+
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const toolsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (toolsRef.current && !toolsRef.current.contains(e.target as Node)) {
+        setIsToolsOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsToolsOpen(false);
+    };
+    if (isToolsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isToolsOpen]);
 
   const currentMeta = sectionTabColorMeta[activeTab];
 
@@ -122,6 +145,9 @@ export function Navbar({
     { key: 'reels', label: 'Reels', icon: <Film className="w-4 h-4" /> },
     { key: 'profile', label: 'Profile', icon: <User className="w-4 h-4" /> },
   ];
+
+  // Desktop navigation items: exclude Profile so it resides solely in the top-right action bar
+  const desktopNavItems = navItems.filter((item) => item.key !== 'profile');
 
   return (
     <>
@@ -156,16 +182,16 @@ export function Navbar({
             </div>
           </div>
 
-          {/* Desktop Navigation Tabs */}
-          <nav className="hidden md:flex items-center gap-1 bg-bg-card/90 border border-accent-gold/30 p-1.5 rounded-2xl">
-            {navItems.map((item) => {
+          {/* Desktop Navigation Tabs (Content Categories) */}
+          <nav className="hidden md:flex items-center gap-0.5 bg-bg-card/80 backdrop-blur-md border border-accent-gold/25 p-1 rounded-2xl shadow-xs">
+            {desktopNavItems.map((item) => {
               const isActive = activeTab === item.key;
               const meta = sectionTabColorMeta[item.key];
               return (
                 <button
                   key={item.key}
                   onClick={() => onSelectTab(item.key)}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs lg:text-sm transition-all relative font-semibold border ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs lg:text-sm transition-all relative font-medium border ${
                     isActive
                       ? meta.activePill
                       : 'border-transparent text-text-secondary hover:text-text-primary hover:bg-bg-primary/40'
@@ -185,107 +211,173 @@ export function Navbar({
             })}
           </nav>
 
-          {/* Quick Action Badges */}
-          <div className="flex items-center gap-2">
-            {onOpenNotificationModal && (
-              <button
-                onClick={onOpenNotificationModal}
-                title="Phone notifications & prayer alerts"
-                className="relative px-3 py-2 text-text-primary hover:text-accent-gold rounded-xl transition-colors flex items-center gap-1.5 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold"
-              >
-                <div className="relative">
-                  <Bell className="w-4 h-4 text-accent-gold" />
-                  {isSubscribed && permission === 'granted' && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-bg-card animate-pulse" />
-                  )}
-                </div>
-                <span className="text-xs font-semibold uppercase tracking-wider hidden xl:inline">Alerts</span>
-              </button>
-            )}
-
-            {onOpenThemeModal && (
-              <button
-                onClick={onOpenThemeModal}
-                title="Change global app theme & colors"
-                className="px-3 py-2 text-text-primary hover:text-accent-gold rounded-xl transition-colors flex items-center gap-1.5 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold"
-              >
-                <Palette className="w-4 h-4 text-accent-gold" />
-                <span className="text-xs font-semibold uppercase tracking-wider hidden xl:inline">Theme</span>
-              </button>
-            )}
-
-            {onOpenShareModal && (
-              <button
-                onClick={onOpenShareModal}
-                title="Share Noor with family & friends"
-                className="px-3 py-2 text-text-primary hover:text-accent-gold rounded-xl transition-colors flex items-center gap-1.5 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold"
-              >
-                <Share2 className="w-4 h-4 text-accent-gold" />
-                <span className="text-xs font-semibold uppercase tracking-wider hidden lg:inline">Share</span>
-              </button>
-            )}
-
+          {/* Summarized Header Control Center */}
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            {/* Quick Audio Settings */}
             <button
               onClick={onOpenAudioSettings}
               title="Recitation settings"
-              className="px-3 py-2 text-text-primary hover:text-accent-gold rounded-xl transition-colors flex items-center gap-2 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold"
+              className="p-2 text-text-secondary hover:text-accent-gold rounded-xl transition-colors hover:bg-bg-card/80 border border-transparent hover:border-accent-gold/30 flex items-center justify-center"
+              aria-label="Audio settings"
             >
               <Volume2 className="w-4 h-4 text-accent-gold" />
-              <span className="text-xs font-semibold uppercase tracking-wider hidden lg:inline">Audio</span>
             </button>
 
+            {/* Quick Saved Items */}
             <button
               onClick={() => onSelectTab('saved')}
               title="Saved items & contemplation journal"
-              className={`px-3 py-2 text-text-primary hover:text-accent-gold rounded-xl transition-colors hidden sm:flex items-center gap-1.5 border border-accent-gold/40 bg-bg-card shadow-xs hover:border-accent-gold ${
-                activeTab === 'saved' ? 'border-accent-gold bg-accent-gold/15 text-accent-gold' : ''
+              className={`relative p-2 rounded-xl transition-all border flex items-center justify-center ${
+                activeTab === 'saved'
+                  ? 'border-accent-gold bg-accent-gold/15 text-accent-gold'
+                  : 'border-transparent text-text-secondary hover:text-accent-gold hover:bg-bg-card/80 hover:border-accent-gold/30'
               }`}
+              aria-label="Saved items"
             >
               <Bookmark className="w-4 h-4 text-accent-gold" />
-              <span className="text-xs font-semibold uppercase tracking-wider hidden lg:inline">Saved</span>
               {savedItems.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-accent-gold text-bg-primary text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-accent-gold text-bg-primary text-[10px] font-bold flex items-center justify-center shadow-xs">
                   {savedItems.length}
                 </span>
               )}
             </button>
 
+            {/* Summarized Tools Dropdown (Theme, Prayer Alerts, Share) */}
+            <div className="relative" ref={toolsRef}>
+              <button
+                onClick={() => setIsToolsOpen(!isToolsOpen)}
+                title="Sanctuary tools: theme, prayer alerts & share"
+                className={`px-2.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 border text-xs font-semibold ${
+                  isToolsOpen
+                    ? 'bg-accent-gold/20 border-accent-gold text-accent-gold'
+                    : 'bg-bg-card/80 border-accent-gold/30 hover:border-accent-gold text-text-secondary hover:text-text-primary'
+                }`}
+                aria-expanded={isToolsOpen}
+              >
+                <div className="relative flex items-center justify-center">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-accent-gold" />
+                  {isSubscribed && permission === 'granted' && (
+                    <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  )}
+                </div>
+                <span className="hidden sm:inline">Tools</span>
+                <ChevronDown className={`w-3 h-3 text-text-secondary transition-transform duration-200 ${isToolsOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isToolsOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 p-2 bg-bg-card/95 backdrop-blur-xl border border-accent-gold/35 rounded-2xl shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-accent-gold/80 font-serif border-b border-accent-gold/15 mb-1 flex items-center justify-between">
+                    <span>Sanctuary Tools</span>
+                    <span className="text-[9px] text-text-secondary/70 font-sans font-normal">Preferences</span>
+                  </div>
+
+                  {onOpenThemeModal && (
+                    <button
+                      onClick={() => {
+                        setIsToolsOpen(false);
+                        onOpenThemeModal();
+                      }}
+                      className="w-full px-2.5 py-2 text-left rounded-xl hover:bg-bg-primary/60 text-text-primary hover:text-accent-gold transition-colors flex items-center justify-between group text-xs"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-bg-primary/80 border border-accent-gold/25 flex items-center justify-center text-accent-gold group-hover:border-accent-gold/50">
+                          <Palette className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">App Theme</div>
+                          <div className="text-[10px] text-text-secondary capitalize">{appTheme}</div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-accent-gold font-bold">Change</span>
+                    </button>
+                  )}
+
+                  {onOpenNotificationModal && (
+                    <button
+                      onClick={() => {
+                        setIsToolsOpen(false);
+                        onOpenNotificationModal();
+                      }}
+                      className="w-full px-2.5 py-2 text-left rounded-xl hover:bg-bg-primary/60 text-text-primary hover:text-accent-gold transition-colors flex items-center justify-between group text-xs"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-bg-primary/80 border border-accent-gold/25 flex items-center justify-center text-accent-gold group-hover:border-accent-gold/50 relative">
+                          <Bell className="w-3.5 h-3.5" />
+                          {isSubscribed && permission === 'granted' && (
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-1 ring-bg-card" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-semibold">Prayer Alerts</div>
+                          <div className="text-[10px] text-text-secondary">
+                            {isSubscribed && permission === 'granted' ? 'Active on device' : 'Adhan notifications'}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-accent-gold font-bold">
+                        {isSubscribed && permission === 'granted' ? 'Manage' : 'Enable'}
+                      </span>
+                    </button>
+                  )}
+
+                  {onOpenShareModal && (
+                    <button
+                      onClick={() => {
+                        setIsToolsOpen(false);
+                        onOpenShareModal();
+                      }}
+                      className="w-full px-2.5 py-2 text-left rounded-xl hover:bg-bg-primary/60 text-text-primary hover:text-accent-gold transition-colors flex items-center justify-between group text-xs"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-bg-primary/80 border border-accent-gold/25 flex items-center justify-center text-accent-gold group-hover:border-accent-gold/50">
+                          <Share2 className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">Share Noor</div>
+                          <div className="text-[10px] text-text-secondary">Invite family & friends</div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-accent-gold font-bold">Share</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Profile Sanctuary Trigger */}
             {user ? (
               <button
                 onClick={() => onSelectTab('profile')}
                 title="View your sacred profile & progress"
-                className={`px-3 py-2 rounded-xl transition-all flex items-center gap-2 border ${
+                className={`px-2.5 sm:px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 border text-xs font-semibold ${
                   activeTab === 'profile'
                     ? 'bg-accent-gold/25 border-accent-gold text-accent-gold shadow-xs'
-                    : 'bg-bg-card border-accent-gold/40 hover:border-accent-gold text-text-primary'
+                    : 'bg-bg-card/80 border-accent-gold/30 hover:border-accent-gold text-text-primary'
                 }`}
               >
-                <div className="w-6 h-6 rounded-lg bg-bg-primary border border-accent-gold text-accent-gold flex items-center justify-center font-bold text-xs">
+                <div className="w-6 h-6 rounded-lg bg-bg-primary border border-accent-gold text-accent-gold flex items-center justify-center font-bold text-xs shrink-0">
                   {user.displayName ? user.displayName[0].toUpperCase() : 'U'}
                 </div>
-                <span className="text-xs font-semibold max-w-[100px] truncate hidden sm:inline">
+                <span className="max-w-[70px] sm:max-w-[100px] truncate hidden sm:inline">
                   {user.displayName.split(' ')[0]}
                 </span>
               </button>
             ) : (
               <button
-                onClick={() => openAuthModal('login')}
-                className="px-3.5 py-2 bg-accent-gold hover:bg-accent-gold-dim text-bg-primary rounded-xl transition-colors flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider shadow-xs"
+                onClick={() => onSelectTab('profile')}
+                title="View profile & account"
+                className={`px-2.5 sm:px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 border text-xs font-semibold ${
+                  activeTab === 'profile'
+                    ? 'bg-accent-gold/25 border-accent-gold text-accent-gold shadow-xs'
+                    : 'bg-bg-card/80 border-accent-gold/30 hover:border-accent-gold text-text-primary'
+                }`}
               >
-                <LogIn className="w-3.5 h-3.5" />
-                <span>Sign In</span>
+                <div className="w-6 h-6 rounded-lg bg-bg-primary border border-accent-gold/60 text-accent-gold flex items-center justify-center font-bold text-xs shrink-0">
+                  <User className="w-3.5 h-3.5" />
+                </div>
+                <span className="hidden sm:inline">Profile</span>
               </button>
             )}
-
-            <button
-              onClick={() => onSelectTab('saved')}
-              className="md:hidden p-2 text-text-secondary rounded-xl hover:bg-bg-card relative border border-accent-gold/30"
-            >
-              <Bookmark className="w-4 h-4 text-accent-gold" />
-              {savedItems.length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent-gold" />
-              )}
-            </button>
           </div>
         </div>
       </header>

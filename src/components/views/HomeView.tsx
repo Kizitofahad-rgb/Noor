@@ -16,8 +16,6 @@ import {
   ChevronRight,
   Volume2,
   CheckCircle2,
-  PenLine,
-  Send,
   Scroll,
   RefreshCw,
   Sunrise,
@@ -61,15 +59,10 @@ export function HomeView({
   const {
     mood,
     setMood,
-    streakDays,
     readSurahs,
     userReflections,
-    addUserReflection,
     reciterId,
   } = useNoor();
-
-  const [journalText, setJournalText] = useState('');
-  const [journalSaved, setJournalSaved] = useState(false);
 
   // Dynamic Greeting States (auto-advancing carousel, pause toggle, prev/next arrows)
   const [greetingPool, setGreetingPool] = useState<DynamicGreeting[]>(() => getContextualGreetings());
@@ -170,13 +163,6 @@ export function HomeView({
       default:
         return <Sun className="w-4 h-4 text-accent-gold" />;
     }
-  };
-
-  const getStreakSubtext = (days: number) => {
-    if (days <= 1) return 'Every journey begins with Bismillah';
-    if (days < 7) return 'Building a blessed rhythm of light';
-    if (days < 30) return 'Spiritual consistency taking root';
-    return "Masha'Allah, enduring daily devotion";
   };
 
   // Daily Dhikr Tip State (Dynamic categories, interactive tasbih & auto-cycle)
@@ -324,15 +310,6 @@ export function HomeView({
       default:
         return <FeatherIcon className="w-4 h-4" />;
     }
-  };
-
-  const handleSaveReflection = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!journalText.trim()) return;
-    addUserReflection(mood, journalText.trim(), reflection.reference);
-    setJournalText('');
-    setJournalSaved(true);
-    setTimeout(() => setJournalSaved(false), 3000);
   };
 
   const playFatihah = (e: React.MouseEvent) => {
@@ -485,24 +462,6 @@ export function HomeView({
                   title={`View reflection ${i + 1}`}
                 />
               ))}
-            </div>
-          </div>
-
-          {/* Daily Habit & Streak Card */}
-          <div className="bg-bg-primary/95 border border-accent-gold/50 rounded-2xl p-5 sm:p-6 flex items-center gap-4 shrink-0 shadow-inner">
-            <div className="w-14 h-14 rounded-xl bg-accent-gold/20 border border-accent-gold/50 flex items-center justify-center text-accent-gold shadow-xs">
-              <Flame className="w-7 h-7" />
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-wider text-accent-gold font-semibold">
-                Daily Habit
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold text-accent-gold">
-                {streakDays} <span className="text-sm font-medium text-text-secondary">Days Active</span>
-              </div>
-              <div className="text-xs text-text-muted mt-0.5 max-w-[170px] truncate">
-                {getStreakSubtext(streakDays)}
-              </div>
             </div>
           </div>
         </div>
@@ -941,54 +900,6 @@ export function HomeView({
               <p className="leading-relaxed text-sm text-text-secondary">{reflection.tafsirExcerpt}</p>
             </BorderedSubPanel>
           )}
-        </div>
-
-        {/* Interactive Reflection Journal Drawer */}
-        <div className="pt-4 border-t border-accent-gold/25 max-w-3xl mx-auto">
-          <BorderedSubPanel className="p-4 sm:p-5">
-            <form onSubmit={handleSaveReflection} className="space-y-3.5">
-              <div className="flex items-center justify-between text-sm text-text-secondary">
-                <span className="flex items-center gap-2 font-semibold text-accent-gold text-xs sm:text-sm uppercase tracking-wider">
-                  <PenLine className="w-4 h-4" />
-                  <span>Personal Contemplation Journal</span>
-                </span>
-                {journalSaved && (
-                  <span className="text-accent-gold font-semibold flex items-center gap-1.5 text-xs sm:text-sm">
-                    <CheckCircle2 className="w-4 h-4" /> Saved to your private journal!
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2.5">
-                <input
-                  type="text"
-                  value={journalText}
-                  onChange={(e) => setJournalText(e.target.value)}
-                  placeholder="What does this verse stir in your heart today?"
-                  className="flex-1 bg-bg-primary border border-accent-gold/45 rounded-xl px-4 py-3 text-sm sm:text-base text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-gold"
-                />
-                <button
-                  type="submit"
-                  disabled={!journalText.trim()}
-                  className="px-5 py-3 bg-accent-gold hover:bg-accent-gold-dim disabled:opacity-40 text-bg-primary rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors shrink-0 shadow-sm uppercase tracking-wider"
-                >
-                  <span>Save Note</span>
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </form>
-
-            {userReflections.length > 0 && (
-              <div className="mt-3.5 text-xs sm:text-sm text-text-muted flex items-center justify-between border-t border-accent-gold/20 pt-2.5">
-                <span>{userReflections.length} personal reflection notes logged</span>
-                <button
-                  onClick={() => onNavigate('saved')}
-                  className="text-accent-gold font-semibold hover:underline flex items-center gap-1"
-                >
-                  View Journal &rarr;
-                </button>
-              </div>
-            )}
-          </BorderedSubPanel>
         </div>
       </OrnamentedCard>
 
