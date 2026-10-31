@@ -44,7 +44,8 @@ import { useNoor } from '@/context/NoorContext';
 import type { ActiveAudioState } from '../AudioPlayerBar';
 import { getSurahAudioUrl } from '@/lib/recitationAudio';
 import { OrnamentedCard, SectionDivider, BorderedSubPanel } from '../Ornamentation';
-import { PrayerTimesWidget } from '../PrayerTimesWidget';
+import { DailyInspirationTrioCard } from '../DailyInspirationTrioCard';
+import { HomeSunnahReminderCard } from '../HomeSunnahReminderCard';
 import { OfflineSanctuaryBanner } from '../OfflineSanctuaryBanner';
 import { DailyPropheticConductCard } from '../DailyPropheticConductCard';
 
@@ -507,8 +508,15 @@ export function HomeView({
         </div>
       </OrnamentedCard>
 
-      {/* Salat & Prayer Times Widget with Geolocation and Countdown */}
-      <PrayerTimesWidget />
+      {/* Daily Inspiration Trio: Surah of the Day, Relatable Hadith & Prophetic Story */}
+      <DailyInspirationTrioCard
+        onOpenSurah={onOpenSurah}
+        onNavigate={onNavigate}
+        onPlayAudio={onPlayAudio}
+      />
+
+      {/* Daily Prophetic Sunnah Prayers (12 Rawatib) & Fasting Reminders */}
+      <HomeSunnahReminderCard onNavigate={onNavigate} />
 
       {/* ========================================================================= */}
       {/* 1. DAILY DHIKR & INTERACTIVE TASBIH TIP (Dynamic Categories & Rotation)   */}

@@ -113,6 +113,17 @@ export function getRecommendedMosqueStandard(country: string, city?: string): Mo
     };
   }
 
+  // East Africa & Horn of Africa (Uganda, Kenya, Tanzania, Somalia, etc.)
+  if (c.includes('uganda') || c.includes('kenya') || c.includes('tanzania') || c.includes('somalia') || c.includes('ethiopia') || ci.includes('kampala') || ci.includes('nairobi') || ci.includes('dar es salaam')) {
+    return {
+      methodId: 'MWL',
+      methodName: 'Muslim World League (East African Mosques Standard)',
+      madhab: 'shafi',
+      jurisdiction: 'Uganda Muslim Supreme Council (UMSC) / Supkem Kenya / MWL',
+      mosqueConventionNote: 'Official consensus standard utilized by East African grand mosques (Old Kampala National Mosque, Jamia Mosque Nairobi).',
+    };
+  }
+
   // United Kingdom & Western Europe
   if (c.includes('united kingdom') || c.includes('uk') || c.includes('britain') || c.includes('england') || c.includes('scotland') || c.includes('ireland')) {
     return {

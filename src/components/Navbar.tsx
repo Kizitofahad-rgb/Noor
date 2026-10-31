@@ -18,7 +18,7 @@ import { useNoor } from '@/context/NoorContext';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationContext';
 
-export type TabKey = 'home' | 'quran' | 'stories' | 'library' | 'reels' | 'learn' | 'saved' | 'profile';
+export type TabKey = 'home' | 'sunnah' | 'quran' | 'stories' | 'library' | 'reels' | 'learn' | 'saved' | 'profile';
 
 const sectionTabColorMeta: Record<TabKey, {
   activePill: string;
@@ -33,6 +33,13 @@ const sectionTabColorMeta: Record<TabKey, {
     badge: 'border-amber-500/40 text-amber-400 bg-amber-500/10',
     arabicLabel: 'اليوم',
     sub: 'Daily Sanctuary',
+  },
+  sunnah: {
+    activePill: 'bg-amber-500/25 text-amber-300 border-amber-400/60 shadow-xs shadow-amber-500/15',
+    activeIcon: 'text-amber-400',
+    badge: 'border-amber-400/40 text-amber-300 bg-amber-500/10',
+    arabicLabel: 'السنن النبوية',
+    sub: 'Prophetic Sunnah',
   },
   quran: {
     activePill: 'bg-emerald-500/25 text-emerald-300 border-emerald-400/60 shadow-xs shadow-emerald-500/15',
@@ -79,7 +86,7 @@ const sectionTabColorMeta: Record<TabKey, {
   profile: {
     activePill: 'bg-yellow-500/20 text-yellow-300 border-yellow-400/50 shadow-xs shadow-yellow-500/10',
     activeIcon: 'text-yellow-400',
-    badge: 'border-yellow-500/40 text-yellow-400 bg-yellow-500/10',
+    badge: 'border-yellow-400/40 text-yellow-400 bg-yellow-500/10',
     arabicLabel: 'الملف والختمة',
     sub: 'Spiritual Journey',
   },
@@ -108,6 +115,7 @@ export function Navbar({
 
   const navItems: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: 'home', label: 'Today', icon: <Home className="w-4 h-4" /> },
+    { key: 'sunnah', label: 'Sunnah', icon: <Sparkles className="w-4 h-4" /> },
     { key: 'quran', label: 'Quran', icon: <BookOpen className="w-4 h-4" /> },
     { key: 'stories', label: 'Stories', icon: <Scroll className="w-4 h-4" /> },
     { key: 'library', label: 'Library', icon: <Compass className="w-4 h-4" /> },
@@ -125,8 +133,13 @@ export function Navbar({
             onClick={() => onSelectTab('home')}
             className="flex items-center gap-3 cursor-pointer select-none group"
           >
-            <div className="w-9 h-9 rounded-xl bg-bg-card border border-accent-gold text-accent-gold flex items-center justify-center font-bold text-lg shadow-sm group-hover:border-accent-gold-dim transition-colors">
-              ن
+            <div className="relative w-10 h-10 rounded-2xl overflow-hidden border border-accent-gold/60 shadow-md shadow-accent-gold/25 group-hover:border-accent-gold transition-all duration-300 shrink-0 bg-bg-card">
+              <img
+                src="/noor_logo.jpg"
+                alt="Noor Logo"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 ring-1 ring-inset ring-accent-gold/40 rounded-2xl pointer-events-none" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -278,7 +291,7 @@ export function Navbar({
       </header>
 
       {/* Mobile Bottom Tab Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg-primary/98 backdrop-blur-md border-t border-accent-gold/25 px-2 py-2 flex items-center justify-around shadow-2xl transition-colors duration-300">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg-primary/98 backdrop-blur-md border-t border-accent-gold/25 px-1 py-1.5 flex items-center justify-around shadow-2xl transition-colors duration-300">
         {navItems.map((item) => {
           const isActive = activeTab === item.key;
           const meta = sectionTabColorMeta[item.key];
@@ -286,14 +299,14 @@ export function Navbar({
             <button
               key={item.key}
               onClick={() => onSelectTab(item.key)}
-              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all relative ${
+              className={`flex flex-col items-center justify-center py-1 px-1.5 rounded-lg transition-all relative ${
                 isActive ? `${meta.activeIcon} font-bold scale-105` : 'text-text-secondary/70 font-medium'
               }`}
             >
               <div className={isActive ? meta.activeIcon : 'opacity-60'}>
                 {item.icon}
               </div>
-              <span className="text-[11px] mt-0.5">{item.label}</span>
+              <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
               {item.key === 'saved' && savedItems.length > 0 && (
                 <span className="absolute top-0.5 right-1 w-3.5 h-3.5 rounded-full bg-accent-gold text-bg-primary text-[9px] font-bold flex items-center justify-center">
                   {savedItems.length}

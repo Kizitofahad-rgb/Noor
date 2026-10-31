@@ -3,6 +3,7 @@ import { NoorProvider } from './context/NoorContext';
 import { AuthProvider } from './context/AuthContext';
 import { Navbar, type TabKey } from './components/Navbar';
 import { HomeView } from './components/views/HomeView';
+import { SunnahView } from './components/views/SunnahView';
 import { QuranView } from './components/views/QuranView';
 import { StoriesView } from './components/views/StoriesView';
 import { LibraryView } from './components/views/LibraryView';
@@ -104,6 +105,13 @@ function NoorApp() {
             onNavigate={handleNavigate}
             onOpenSurah={(surah) => setSelectedSurahForDive(surah)}
             onPlayAudio={handlePlayAudio}
+          />
+        )}
+
+        {activeTab === 'sunnah' && (
+          <SunnahView
+            onNavigate={handleNavigate}
+            onOpenSurah={(surah) => setSelectedSurahForDive(surah)}
           />
         )}
 

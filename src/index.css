@@ -23,6 +23,18 @@
   --text-muted: #AAA08B;
 }
 
+/* Sunnah: Sacred Olive Velvet & Radiant Dawn Gold */
+[data-section="sunnah"] {
+  --bg-primary: #0A1612;
+  --bg-card: #12251F;
+  --accent-gold: #F59E0B;
+  --accent-gold-dim: #D97706;
+  --accent-gold-glow: rgba(245, 158, 11, 0.28);
+  --text-primary: #FAF8F2;
+  --text-secondary: #E7E0D0;
+  --text-muted: #ACA391;
+}
+
 /* 2. Quran: Sacred Deep Emerald & Radiant Pure Gold */
 [data-section="quran"] {
   --bg-primary: #031710;
